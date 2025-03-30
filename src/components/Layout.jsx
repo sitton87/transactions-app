@@ -35,7 +35,7 @@ export default function Layout({ children }) {
           <img
             src={logoImage}
             alt="לוגו עזרה לזולת"
-            className="h-4 w-6 object-contain ml-2"
+            className="h-2 w-4 object-contain ml-2"
           />
           <h1 className="text-lg font-bold">עזרה לזולת</h1>
         </div>
