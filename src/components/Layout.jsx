@@ -37,7 +37,7 @@ export default function Layout({ children }) {
             alt="לוגו עזרה לזולת"
             className="h-8 w-auto ml-2"
           />
-          <h1 className="text-lg font-bold">עזרה לזולת</h1>
+          <h1 className="text-lg font-bold">עזר לזולת</h1>
         </div>
         <button onClick={toggleMenu} aria-label="תפריט">
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
