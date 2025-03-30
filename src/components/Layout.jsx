@@ -27,10 +27,10 @@ export default function Layout({ children }) {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50" dir="rtl">
-      {/* Mobile & Desktop Header */}
+      {/* Header - only has logo and menu button */}
       <header className="flex items-center justify-between p-4 bg-white shadow fixed top-0 right-0 w-full z-30">
         <h1 className="text-lg font-bold">פיננסי</h1>
-        <button onClick={toggleMenu}>
+        <button onClick={toggleMenu} aria-label="תפריט">
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </header>
@@ -43,42 +43,36 @@ export default function Layout({ children }) {
         />
       )}
 
-      {/* Menu Drawer - Always hidden by default */}
-      <aside
-        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-md z-40 transform transition-transform duration-200 ease-in-out pt-16
-        ${isOpen ? "translate-x-0" : "translate-x-full"}`}
-      >
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-xl font-bold">תפריט</h2>
-          <button onClick={toggleMenu}>
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        <nav className="flex flex-col p-4 space-y-2">
-          {navItems.map(({ path, label, icon }) => (
-            <Link
-              key={path}
-              to={path}
-              onClick={closeMenu}
-              className={`flex items-center gap-2 p-2 rounded-md transition
-              ${
-                location.pathname === path
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
+      {/* Dropdown Menu - Only appears when menu button is clicked */}
+      {isOpen && (
+        <div className="fixed top-16 right-0 w-48 bg-white shadow-lg rounded-bl-md z-40">
+          <nav className="flex flex-col py-2">
+            {navItems.map(({ path, label, icon }) => (
+              <Link
+                key={path}
+                to={path}
+                onClick={closeMenu}
+                className={`flex items-center gap-2 px-4 py-2 transition
+                ${
+                  location.pathname === path
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                {icon}
+                <span>{label}</span>
+              </Link>
+            ))}
+            <button
+              onClick={() => alert("התנתקות עדיין לא פעילה")}
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 text-right w-full"
             >
-              {icon}
-              {label}
-            </Link>
-          ))}
-          <button
-            onClick={() => alert("התנתקות עדיין לא פעילה")}
-            className="flex items-center gap-2 p-2 rounded-md text-gray-700 hover:bg-gray-100"
-          >
-            <LogOut /> התנתק
-          </button>
-        </nav>
-      </aside>
+              <LogOut />
+              <span>התנתק</span>
+            </button>
+          </nav>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="flex-1 mt-16 p-4 overflow-auto">{children}</main>
