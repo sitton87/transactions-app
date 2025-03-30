@@ -45,14 +45,14 @@ export default function Layout({ children }) {
 
       {/* Dropdown Menu - Only appears when menu button is clicked */}
       {isOpen && (
-        <div className="fixed top-16 right-0 w-48 bg-white shadow-lg rounded-bl-md z-40">
-          <nav className="flex flex-col py-2">
+        <div className="fixed top-16 right-0 w-full max-w-xs bg-white shadow-lg z-40">
+          <nav className="flex flex-col py-2 w-full">
             {navItems.map(({ path, label, icon }) => (
               <Link
                 key={path}
                 to={path}
                 onClick={closeMenu}
-                className={`flex items-center gap-2 px-4 py-2 transition
+                className={`flex items-center gap-2 px-4 py-3 transition w-full border-b border-gray-100
                 ${
                   location.pathname === path
                     ? "bg-blue-100 text-blue-700"
