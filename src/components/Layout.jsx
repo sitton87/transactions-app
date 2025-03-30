@@ -10,6 +10,8 @@ import {
   Users,
   LogOut,
 } from "lucide-react";
+// ייבוא של הלוגו
+import logoImage from "../assets/images/לוגו סנדי.jpg"; // שים לב לשם הקובץ
 
 const navItems = [
   { path: "/add", label: "הוסף עסקה", icon: <PlusCircle /> },
@@ -29,7 +31,14 @@ export default function Layout({ children }) {
     <div className="flex flex-col min-h-screen bg-gray-50" dir="rtl">
       {/* Header */}
       <header className="flex items-center justify-between p-4 bg-white shadow fixed top-0 right-0 w-full z-30">
-        <h1 className="text-lg font-bold">פיננסי</h1>
+        <div className="flex items-center">
+          <img
+            src={logoImage}
+            alt="לוגו עזרה לזולת"
+            className="h-8 w-auto ml-2"
+          />
+          <h1 className="text-lg font-bold">עזרה לזולת</h1>
+        </div>
         <button onClick={toggleMenu} aria-label="תפריט">
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
