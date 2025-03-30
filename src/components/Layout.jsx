@@ -35,14 +35,24 @@ export default function Layout({ children }) {
         </button>
       </header>
 
+      {/* Mobile Overlay when menu is open */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          onClick={closeMenu}
+        />
+      )}
+
       {/* Sidebar/Menu Drawer */}
       <aside
         className={`fixed top-0 right-0 h-full w-64 bg-white shadow-md z-40 transform transition-transform duration-200 ease-in-out
-        ${isOpen ? "translate-x-0" : "translate-x-full"} md:translate-x-0`}
+        ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        } md:translate-x-0 md:static md:z-0`}
       >
-        <div className="flex items-center justify-between p-4 border-b md:hidden">
+        <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-xl font-bold">תפריט</h2>
-          <button onClick={toggleMenu}>
+          <button onClick={toggleMenu} className="md:hidden">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -73,9 +83,12 @@ export default function Layout({ children }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 mt-20 md:mt-0 p-4 md:ml-64 overflow-auto">
-        {children}
-      </main>
+      <div className="flex flex-1">
+        {/* Main Content Area */}
+        <main className="flex-1 mt-16 md:mt-0 p-4 md:mr-64 overflow-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
