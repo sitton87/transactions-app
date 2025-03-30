@@ -30,14 +30,22 @@ export default function Layout({ children }) {
       className="flex flex-col md:flex-row min-h-screen bg-gray-50"
       dir="rtl"
     >
+      {/* Mobile Header */}
+      <header className="md:hidden flex items-center justify-between p-4 bg-white shadow fixed top-0 right-0 w-full z-30">
+        <h1 className="text-lg font-bold">פיננסי</h1>
+        <button onClick={toggleMenu}>
+          <Menu className="w-6 h-6" />
+        </button>
+      </header>
+
       {/* Sidebar */}
-      <div
-        className={`fixed z-20 top-0 right-0 h-full w-64 bg-white shadow-md transform transition-transform duration-200 ease-in-out
-          ${
-            isOpen ? "translate-x-0" : "translate-x-full"
-          } md:relative md:translate-x-0`}
+      <aside
+        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-md z-40 transform transition-transform duration-200 ease-in-out
+        ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        } md:relative md:translate-x-0 md:block`}
       >
-        <div className="flex justify-between items-center p-4 border-b">
+        <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-xl font-bold">פיננסי</h2>
           <button className="md:hidden" onClick={toggleMenu}>
             <X className="w-6 h-6" />
@@ -49,12 +57,11 @@ export default function Layout({ children }) {
               key={path}
               to={path}
               onClick={closeMenu}
-              className={`flex items-center gap-2 p-2 rounded-md transition
-                ${
-                  location.pathname === path
-                    ? "bg-blue-100 text-blue-700"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
+              className={`flex items-center gap-2 p-2 rounded-md transition ${
+                location.pathname === path
+                  ? "bg-blue-100 text-blue-700"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
             >
               {icon}
               {label}
@@ -64,23 +71,14 @@ export default function Layout({ children }) {
             onClick={() => alert("התנתקות עדיין לא פעילה")}
             className="flex items-center gap-2 p-2 rounded-md text-gray-700 hover:bg-gray-100"
           >
-            <LogOut /> התנתק
+            <LogOut />
+            התנתק
           </button>
         </nav>
-      </div>
+      </aside>
 
-      {/* Mobile menu button */}
-      <header className="md:hidden p-4 border-b flex justify-between items-center bg-white shadow">
-        <button onClick={toggleMenu}>
-          <Menu className="w-6 h-6" />
-        </button>
-        <h1 className="text-lg font-bold">פיננסי</h1>
-      </header>
-
-      {/* Main content */}
-      <main className="flex-1 p-4 mt-16 md:mt-0 md:ml-64 overflow-auto">
-        {children}
-      </main>
+      {/* Main Content */}
+      <main className="flex-1 mt-16 md:mt-0 md:mr-64 p-4">{children}</main>
     </div>
   );
 }
