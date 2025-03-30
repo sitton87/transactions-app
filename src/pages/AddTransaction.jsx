@@ -12,34 +12,40 @@ const CameraUpload = ({ onImageCapture }) => {
   // פתיחת המצלמה - עם הגדרה מפורשת למצלמה האחורית
   const openCamera = async () => {
     try {
-      // ניסיון ספציפי למצלמה האחורית
-      const stream = await navigator.mediaDevices
-        .getUserMedia({
+      // ננסה קודם את המצלמה האחורית
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { exact: "environment" },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
           },
-        })
-        .catch(async () => {
-          // אם אין מצלמה אחורית, ננסה כל מצלמה זמינה
-          console.log("אין גישה למצלמה האחורית, מנסה מצלמה אחרת");
-          return await navigator.mediaDevices.getUserMedia({
-            video: true,
-          });
+          audio: false,
         });
+        console.log("מצלמה אחורית נפתחה בהצלחה");
+      } catch (err) {
+        // אם אין מצלמה אחורית, ננסה כל מצלמה זמינה
+        console.log("אין גישה למצלמה האחורית, מנסה מצלמה אחרת", err);
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+        console.log("נפתחה מצלמה חלופית");
+      }
 
       streamRef.current = stream;
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
 
-        // חיכוי קצר לטעינת המצלמה לפני הפעלה
-        setTimeout(() => {
+        // מוודא שהמצלמה מוכנה לפני הפעלה
+        videoRef.current.onloadedmetadata = () => {
+          console.log("המצלמה נטענה, מתחיל הפעלה");
           videoRef.current
             .play()
             .catch((e) => console.error("שגיאה בהפעלת וידאו:", e));
-        }, 300);
+        };
       }
 
       setShowCamera(true);
