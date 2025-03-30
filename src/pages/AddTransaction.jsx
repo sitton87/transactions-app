@@ -1,155 +1,50 @@
 import { supabase } from "../lib/supabaseClient";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import Webcam from "react-webcam"; // צריך להתקין: npm install react-webcam
 
-// קומפוננט מצלמה משופר
+// קומפוננט מצלמה משופר עם ספריית react-webcam
 const CameraUpload = ({ onImageCapture }) => {
   const [capturedImage, setCapturedImage] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-  const containerRef = useRef(null);
+  const [facing, setFacing] = useState("environment"); // מצלמה אחורית כברירת מחדל
+  const webcamRef = useRef(null);
 
-  // פתיחת המצלמה - גישה אלטרנטיבית
-  const openCamera = async () => {
-    try {
-      // סגירה של כל זרמי מצלמה פתוחים קודמים
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-        streamRef.current = null;
-      }
-
-      console.log("מתחיל לפתוח את המצלמה");
-
-      // הגדרות יותר בסיסיות למצלמה
-      const constraints = {
-        audio: false,
-        video: {
-          facingMode: "environment", // ננסה את המצלמה האחורית ללא 'exact'
-          width: { ideal: 640 }, // רזולוציה נמוכה יותר
-          height: { ideal: 480 },
-        },
-      };
-
-      console.log(
-        "מנסה לקבל גישה למצלמה עם הגדרות:",
-        JSON.stringify(constraints)
-      );
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log("הצלחנו לקבל גישה למצלמה");
-
-      streamRef.current = stream;
-
-      // וידוא שהאלמנט קיים
-      if (videoRef.current) {
-        console.log("מגדיר את ה-srcObject של אלמנט הוידאו");
-
-        // ניקוי קודם
-        videoRef.current.srcObject = null;
-
-        // הגדרה מחדש של זרם הוידאו
-        videoRef.current.srcObject = stream;
-        videoRef.current.muted = true;
-        videoRef.current.playsInline = true;
-
-        // הפעלה מיידית
-        try {
-          console.log("מנסה להפעיל את הוידאו");
-          await videoRef.current.play();
-          console.log("הוידאו הופעל בהצלחה");
-        } catch (playError) {
-          console.error("שגיאה בהפעלת הוידאו:", playError);
-
-          // ננסה שוב עם השהיה
-          setTimeout(async () => {
-            try {
-              await videoRef.current.play();
-              console.log("הוידאו הופעל בהצלחה אחרי השהיה");
-            } catch (delayedPlayError) {
-              console.error(
-                "שגיאה גם בניסיון השני להפעלת הוידאו:",
-                delayedPlayError
-              );
-            }
-          }, 1000);
-        }
-      } else {
-        console.error("אלמנט הוידאו לא קיים!");
-      }
-
-      setShowCamera(true);
-    } catch (error) {
-      console.error("שגיאה בגישה למצלמה:", error);
-
-      // הודעות שגיאה ספציפיות יותר
-      if (error.name === "NotAllowedError") {
-        alert("הגישה למצלמה נדחתה. אנא אשר את הגישה בדפדפן.");
-      } else if (error.name === "NotFoundError") {
-        alert("לא נמצאה מצלמה במכשיר שלך.");
-      } else if (error.name === "NotReadableError") {
-        alert("לא ניתן לגשת למצלמה. ייתכן שהמצלמה בשימוש באפליקציה אחרת.");
-      } else {
-        alert(`לא ניתן לגשת למצלמה: ${error.message}`);
-      }
-    }
+  // פתיחת המצלמה
+  const openCamera = () => {
+    setShowCamera(true);
   };
 
   // סגירת המצלמה
   const closeCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-    }
     setShowCamera(false);
   };
 
-  // צילום תמונה
-  const captureImage = () => {
-    if (!videoRef.current) return;
+  // החלפת מצלמה (קדמית/אחורית)
+  const switchCamera = () => {
+    setFacing(facing === "environment" ? "user" : "environment");
+  };
 
-    // בדיקת תקינות הוידאו
-    console.log("מנסה לצלם, האם יש וידאו?", !!videoRef.current);
-    if (videoRef.current) {
-      console.log("מידות הוידאו:", {
-        videoWidth: videoRef.current.videoWidth,
-        videoHeight: videoRef.current.videoHeight,
-        offsetWidth: videoRef.current.offsetWidth,
-        offsetHeight: videoRef.current.offsetHeight,
-        readyState: videoRef.current.readyState,
-      });
+  // צילום תמונה
+  const captureImage = useCallback(() => {
+    if (!webcamRef.current) {
+      console.error("המצלמה לא מוכנה");
+      return;
     }
 
     try {
-      const video = videoRef.current;
+      // צילום התמונה
+      const imageSrc = webcamRef.current.getScreenshot();
 
-      // אם הוידאו לא טעון, הודע למשתמש
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        console.error("הוידאו לא טעון כראוי - אין ממדים");
-        alert("המצלמה לא מוכנה לצילום. אנא נסה שוב.");
+      if (!imageSrc) {
+        console.error("לא ניתן לצלם תמונה");
+        alert("לא ניתן לצלם תמונה. אנא ודא שהמצלמה פעילה.");
         return;
       }
 
-      // יצירת קנבס בגודל מלא של הוידאו
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      const ctx = canvas.getContext("2d");
-
-      // ציור התמונה על הקנבס
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      // המרה ל-base64 לתצוגה מקדימה
-      const imageDataUrl = canvas.toDataURL("image/jpeg", 0.9);
-
-      // המרה לקובץ
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            console.error("שגיאה ביצירת קובץ תמונה");
-            return;
-          }
-
-          // יצירת קובץ עם שם ותאריך
+      // יצירת קובץ מהתמונה
+      fetch(imageSrc)
+        .then((res) => res.blob())
+        .then((blob) => {
           const now = new Date();
           const fileName = `image_${now.getFullYear()}${(now.getMonth() + 1)
             .toString()
@@ -167,31 +62,30 @@ const CameraUpload = ({ onImageCapture }) => {
           const file = new File([blob], fileName, { type: "image/jpeg" });
 
           // שמירת התמונה והעברה לקומפוננט ההורה
-          setCapturedImage(imageDataUrl);
+          setCapturedImage(imageSrc);
           if (onImageCapture) {
             onImageCapture(file);
           }
 
           // סגירת המצלמה
           closeCamera();
-        },
-        "image/jpeg",
-        0.9
-      );
+        })
+        .catch((err) => {
+          console.error("שגיאה בעיבוד התמונה:", err);
+          alert("אירעה שגיאה בעיבוד התמונה. נסה שנית.");
+        });
     } catch (err) {
       console.error("שגיאה בצילום התמונה:", err);
       alert("אירעה שגיאה בצילום התמונה. נסה שנית.");
     }
-  };
+  }, [webcamRef, onImageCapture]);
 
-  // ניקוי משאבים כשהקומפוננט מתפרק
-  useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, []);
+  // הגדרות מצלמה
+  const videoConstraints = {
+    facingMode: facing, // מצלמה קדמית או אחורית
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
+  };
 
   return (
     <div style={{ marginTop: "10px" }}>
@@ -230,7 +124,6 @@ const CameraUpload = ({ onImageCapture }) => {
 
       {showCamera && (
         <div
-          ref={containerRef}
           style={{
             position: "fixed",
             top: 0,
@@ -270,16 +163,17 @@ const CameraUpload = ({ onImageCapture }) => {
               }}
             />
 
-            <video
-              ref={videoRef}
+            <Webcam
+              audio={false}
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              videoConstraints={videoConstraints}
+              screenshotQuality={0.9}
               style={{
                 width: "100%",
                 height: "100%",
                 objectFit: "cover",
               }}
-              autoPlay
-              playsInline
-              muted
             />
           </div>
 
@@ -289,6 +183,7 @@ const CameraUpload = ({ onImageCapture }) => {
               justifyContent: "space-around",
               padding: "16px",
               backgroundColor: "#000",
+              alignItems: "center",
             }}
           >
             <button
@@ -306,6 +201,23 @@ const CameraUpload = ({ onImageCapture }) => {
             >
               ביטול
             </button>
+
+            <button
+              type="button"
+              onClick={switchCamera}
+              style={{
+                padding: "10px 15px",
+                background: "#3b82f6",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "16px",
+              }}
+            >
+              החלף מצלמה
+            </button>
+
             <button
               type="button"
               onClick={captureImage}
