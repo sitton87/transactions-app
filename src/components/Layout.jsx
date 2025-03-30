@@ -11,7 +11,7 @@ import {
   LogOut,
 } from "lucide-react";
 // ייבוא של הלוגו
-import logoImage from "../assets/images/לוגו סנדי.jpg";
+import logoImage from "../assets/images/לוגו סנדי.jpg"; // שים לב לשם הקובץ
 
 const navItems = [
   { path: "/add", label: "הוסף עסקה", icon: <PlusCircle /> },
@@ -29,108 +29,89 @@ export default function Layout({ children }) {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50" dir="rtl">
-      {/* Header - תצוגת מובייל */}
-      <header className="md:hidden flex items-center justify-between p-2 bg-white shadow fixed top-0 right-0 w-full z-30">
+      {/* Header */}
+      <header className="flex items-center justify-between p-4 bg-white shadow fixed top-0 right-0 w-full z-30">
         <div className="flex items-center">
-          {/* לוגו מזערי במובייל */}
           <img
             src={logoImage}
             alt="לוגו עזרה לזולת"
             style={{
-              transform: "scale(0.4)",
-              transformOrigin: "right center",
-              marginRight: "0px",
+              transform: "scale(0.6)", // מקטין ל-20% מהגודל המקורי
+              transformOrigin: "right center", // שינוי מ-left ל-right
+              marginRight: "0px", // מבטיח שהתמונה צמודה לצד ימין
               marginLeft: "8px",
             }}
           />
-          <h1 className="text-base font-bold">עזרה לזולת</h1>
+          <h1 className="text-lg font-bold">עזרה לזולת</h1>
         </div>
         <button onClick={toggleMenu} aria-label="תפריט">
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </header>
 
-      {/* Header - תצוגת מחשב רחבה */}
-      <header className="hidden md:flex flex-col items-center justify-center p-6 bg-white shadow fixed top-0 right-0 w-full z-30">
-        <div className="flex flex-col items-center justify-center w-full max-w-7xl mx-auto">
-          {/* לוגו גדול וממורכז במחשב */}
-          <div className="flex items-center justify-center mb-4">
-            <img
-              src={logoImage}
-              alt="לוגו עזרה לזולת"
-              style={{
-                transform: "scale(0.9)",
-                transformOrigin: "center center",
-              }}
-              className="mx-auto"
-            />
-          </div>
-          <h1 className="text-2xl font-bold mb-4">עזרה לזולת</h1>
-
-          {/* תפריט אופקי רחב */}
-          <nav className="flex items-center justify-center w-full space-x-8">
-            {navItems.map(({ path, label, icon }) => (
-              <Link
-                key={path}
-                to={path}
-                className={`flex items-center px-4 py-2 rounded-lg transition ${
-                  location.pathname === path
-                    ? "bg-blue-100 text-blue-800"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                <span className="ml-2">{icon}</span>
-                <span>{label}</span>
-              </Link>
-            ))}
-            <button
-              onClick={() => alert("התנתקות עדיין לא פעילה")}
-              className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
-            >
-              <span className="ml-2">
-                <LogOut />
-              </span>
-              <span>התנתק</span>
-            </button>
-          </nav>
-        </div>
-      </header>
-
-      {/* Overlay במובייל */}
+      {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-30"
           onClick={closeMenu}
         />
       )}
 
-      {/* תפריט נפתח במובייל */}
+      {/* Menu - with explicit display: block styling */}
       {isOpen && (
         <div
-          className="fixed top-14 right-0 bg-white shadow-lg z-40 md:hidden"
-          style={{ width: "250px" }}
+          className="fixed top-16 right-0 bg-white shadow-lg z-40"
+          style={{ width: "250px", display: "block" }} // Force block display
         >
-          <ul className="py-2">
+          <ul
+            style={{
+              display: "block",
+              listStyle: "none",
+              padding: 0,
+              margin: 0,
+            }}
+          >
             {navItems.map(({ path, label, icon }) => (
-              <li key={path}>
+              <li key={path} style={{ display: "block", width: "100%" }}>
                 <Link
                   to={path}
                   onClick={closeMenu}
-                  className={`flex items-center px-4 py-3 border-b border-gray-100 ${
-                    location.pathname === path ? "bg-blue-50 text-blue-800" : ""
-                  }`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "12px 16px",
+                    borderBottom: "1px solid #eee",
+                    color: location.pathname === path ? "#1d4ed8" : "#333",
+                    backgroundColor:
+                      location.pathname === path ? "#dbeafe" : "transparent",
+                    textDecoration: "none",
+                    width: "100%",
+                  }}
                 >
-                  <span className="ml-3">{icon}</span>
+                  <span style={{ marginLeft: "8px" }}>{icon}</span>
                   <span>{label}</span>
                 </Link>
               </li>
             ))}
-            <li>
+            <li style={{ display: "block", width: "100%" }}>
               <button
                 onClick={() => alert("התנתקות עדיין לא פעילה")}
-                className="flex items-center px-4 py-3 w-full text-right"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "12px 16px",
+                  borderBottom: "1px solid #eee",
+                  color: "#333",
+                  backgroundColor: "transparent",
+                  textDecoration: "none",
+                  width: "100%",
+                  textAlign: "right",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                }}
               >
-                <span className="ml-3">
+                <span style={{ marginLeft: "8px" }}>
                   <LogOut />
                 </span>
                 <span>התנתק</span>
@@ -140,10 +121,8 @@ export default function Layout({ children }) {
         </div>
       )}
 
-      {/* Main Content - התאמת גובה ומרווחים לפי סוג המכשיר */}
-      <main className="flex-1 mt-14 md:mt-40 p-2 md:p-6 overflow-auto">
-        <div className="w-full md:max-w-7xl mx-auto">{children}</div>
-      </main>
+      {/* Main Content */}
+      <main className="flex-1 mt-16 p-4 overflow-auto">{children}</main>
     </div>
   );
 }
