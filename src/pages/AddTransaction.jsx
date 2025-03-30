@@ -1,32 +1,51 @@
 import { supabase } from "../lib/supabaseClient";
-import React, { useState, useRef } from "react";
-import { Camera } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
 
-// קומפוננט מצלמה לצילום תמונות
+// קומפוננט מצלמה משופר
 const CameraUpload = ({ onImageCapture }) => {
   const [capturedImage, setCapturedImage] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const containerRef = useRef(null);
 
-  // פתיחת המצלמה
+  // פתיחת המצלמה - עם הגדרה מפורשת למצלמה האחורית
   const openCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
+      // ניסיון ספציפי למצלמה האחורית
+      const stream = await navigator.mediaDevices
+        .getUserMedia({
+          video: {
+            facingMode: { exact: "environment" },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
+        })
+        .catch(async () => {
+          // אם אין מצלמה אחורית, ננסה כל מצלמה זמינה
+          console.log("אין גישה למצלמה האחורית, מנסה מצלמה אחרת");
+          return await navigator.mediaDevices.getUserMedia({
+            video: true,
+          });
+        });
 
       streamRef.current = stream;
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+
+        // חיכוי קצר לטעינת המצלמה לפני הפעלה
+        setTimeout(() => {
+          videoRef.current
+            .play()
+            .catch((e) => console.error("שגיאה בהפעלת וידאו:", e));
+        }, 300);
       }
 
       setShowCamera(true);
     } catch (error) {
       console.error("שגיאה בגישה למצלמה:", error);
-      alert("לא ניתן לגשת למצלמה. אנא בדוק את ההרשאות.");
+      alert("לא ניתן לגשת למצלמה. אנא בדוק את ההרשאות או נסה במכשיר אחר.");
     }
   };
 
@@ -42,51 +61,73 @@ const CameraUpload = ({ onImageCapture }) => {
   const captureImage = () => {
     if (!videoRef.current) return;
 
-    const canvas = document.createElement("canvas");
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
+    try {
+      const video = videoRef.current;
 
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      // יצירת קנבס בגודל מלא של הוידאו
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
 
-    // המרה ל-base64 (לתצוגה מקדימה)
-    const imageDataUrl = canvas.toDataURL("image/jpeg");
+      const ctx = canvas.getContext("2d");
 
-    // המרה לקובץ (חשוב לשמירה)
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          console.error("שגיאה ביצירת קובץ תמונה");
-          return;
-        }
+      // ציור התמונה על הקנבס
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // יצירת קובץ עם שם ותאריך
-        const now = new Date();
-        const fileName = `image_${now.getFullYear()}${(now.getMonth() + 1)
-          .toString()
-          .padStart(2, "0")}${now.getDate().toString().padStart(2, "0")}_${now
-          .getHours()
-          .toString()
-          .padStart(2, "0")}${now.getMinutes().toString().padStart(2, "0")}${now
-          .getSeconds()
-          .toString()
-          .padStart(2, "0")}.jpg`;
+      // המרה ל-base64 לתצוגה מקדימה
+      const imageDataUrl = canvas.toDataURL("image/jpeg", 0.9);
 
-        const file = new File([blob], fileName, { type: "image/jpeg" });
+      // המרה לקובץ
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            console.error("שגיאה ביצירת קובץ תמונה");
+            return;
+          }
 
-        // שמירת התמונה במצב והעברה למרכיב ההורה
-        setCapturedImage(imageDataUrl);
-        if (onImageCapture) {
-          onImageCapture(file);
-        }
+          // יצירת קובץ עם שם ותאריך
+          const now = new Date();
+          const fileName = `image_${now.getFullYear()}${(now.getMonth() + 1)
+            .toString()
+            .padStart(2, "0")}${now.getDate().toString().padStart(2, "0")}_${now
+            .getHours()
+            .toString()
+            .padStart(2, "0")}${now
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}${now
+            .getSeconds()
+            .toString()
+            .padStart(2, "0")}.jpg`;
 
-        // סגירת המצלמה
-        closeCamera();
-      },
-      "image/jpeg",
-      0.9
-    );
+          const file = new File([blob], fileName, { type: "image/jpeg" });
+
+          // שמירת התמונה והעברה לקומפוננט ההורה
+          setCapturedImage(imageDataUrl);
+          if (onImageCapture) {
+            onImageCapture(file);
+          }
+
+          // סגירת המצלמה
+          closeCamera();
+        },
+        "image/jpeg",
+        0.9
+      );
+    } catch (err) {
+      console.error("שגיאה בצילום התמונה:", err);
+      alert("אירעה שגיאה בצילום התמונה. נסה שנית.");
+    }
   };
+
+  // ניקוי משאבים כשהקומפוננט מתפרק
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
 
   return (
     <div style={{ marginTop: "10px" }}>
@@ -124,51 +165,97 @@ const CameraUpload = ({ onImageCapture }) => {
       )}
 
       {showCamera && (
-        <div style={{ marginTop: "10px", position: "relative" }}>
-          <video
-            ref={videoRef}
+        <div
+          ref={containerRef}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "#000",
+            zIndex: 9999,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+          }}
+        >
+          <div
             style={{
+              position: "relative",
               width: "100%",
-              maxHeight: "70vh",
-              borderRadius: "8px",
+              height: "calc(100% - 80px)",
+              overflow: "hidden",
             }}
-          />
+          >
+            {/* המסגרת למיקוד הצילום */}
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "80%",
+                height: "80%",
+                maxWidth: "500px",
+                maxHeight: "500px",
+                border: "2px solid rgba(255, 255, 255, 0.7)",
+                borderRadius: "8px",
+                boxShadow: "0 0 0 2000px rgba(0, 0, 0, 0.3)",
+                zIndex: 2,
+              }}
+            />
+
+            <video
+              ref={videoRef}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+              autoPlay
+              playsInline
+              muted
+            />
+          </div>
 
           <div
             style={{
               display: "flex",
-              justifyContent: "center",
-              gap: "10px",
-              marginTop: "10px",
+              justifyContent: "space-around",
+              padding: "16px",
+              backgroundColor: "#000",
             }}
           >
             <button
               type="button"
-              onClick={captureImage}
-              style={{
-                padding: "8px 16px",
-                background: "#22c55e",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              צלם
-            </button>
-            <button
-              type="button"
               onClick={closeCamera}
               style={{
-                padding: "8px 16px",
+                padding: "10px 20px",
                 background: "#6b7280",
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
+                fontSize: "16px",
               }}
             >
-              בטל
+              ביטול
+            </button>
+            <button
+              type="button"
+              onClick={captureImage}
+              style={{
+                padding: "10px 20px",
+                background: "#22c55e",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "16px",
+              }}
+            >
+              צלם
             </button>
           </div>
         </div>
@@ -527,7 +614,7 @@ export default function AddTransaction() {
             </div>
           )}
 
-          {/* קומפוננט מצלמה */}
+          {/* קומפוננט מצלמה משופר */}
           <CameraUpload onImageCapture={handleImageCapture} />
         </div>
 
