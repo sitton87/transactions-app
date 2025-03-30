@@ -27,8 +27,8 @@ export default function Layout({ children }) {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50" dir="rtl">
-      {/* Mobile Header */}
-      <header className="flex items-center justify-between p-4 bg-white shadow md:hidden fixed top-0 right-0 w-full z-30">
+      {/* Mobile & Desktop Header */}
+      <header className="flex items-center justify-between p-4 bg-white shadow fixed top-0 right-0 w-full z-30">
         <h1 className="text-lg font-bold">פיננסי</h1>
         <button onClick={toggleMenu}>
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -38,21 +38,19 @@ export default function Layout({ children }) {
       {/* Mobile Overlay when menu is open */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-30"
           onClick={closeMenu}
         />
       )}
 
-      {/* Sidebar/Menu Drawer */}
+      {/* Menu Drawer - Always hidden by default */}
       <aside
-        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-md z-40 transform transition-transform duration-200 ease-in-out
-        ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        } md:translate-x-0 md:static md:z-0`}
+        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-md z-40 transform transition-transform duration-200 ease-in-out pt-16
+        ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-xl font-bold">תפריט</h2>
-          <button onClick={toggleMenu} className="md:hidden">
+          <button onClick={toggleMenu}>
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -83,12 +81,7 @@ export default function Layout({ children }) {
       </aside>
 
       {/* Main Content */}
-      <div className="flex flex-1">
-        {/* Main Content Area */}
-        <main className="flex-1 mt-16 md:mt-0 p-4 md:mr-64 overflow-auto">
-          {children}
-        </main>
-      </div>
+      <main className="flex-1 mt-16 p-4 overflow-auto">{children}</main>
     </div>
   );
 }
