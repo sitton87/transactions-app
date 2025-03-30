@@ -27,7 +27,7 @@ export default function Layout({ children }) {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50" dir="rtl">
-      {/* Header - only has logo and menu button */}
+      {/* Header */}
       <header className="flex items-center justify-between p-4 bg-white shadow fixed top-0 right-0 w-full z-30">
         <h1 className="text-lg font-bold">פיננסי</h1>
         <button onClick={toggleMenu} aria-label="תפריט">
@@ -35,7 +35,7 @@ export default function Layout({ children }) {
         </button>
       </header>
 
-      {/* Mobile Overlay when menu is open */}
+      {/* Overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30"
@@ -43,34 +43,67 @@ export default function Layout({ children }) {
         />
       )}
 
-      {/* Dropdown Menu - Only appears when menu button is clicked */}
+      {/* Menu - with explicit display: block styling */}
       {isOpen && (
-        <div className="fixed top-16 right-0 w-full max-w-xs bg-white shadow-lg z-40">
-          <nav className="flex flex-col py-2 w-full">
+        <div
+          className="fixed top-16 right-0 bg-white shadow-lg z-40"
+          style={{ width: "250px", display: "block" }} // Force block display
+        >
+          <ul
+            style={{
+              display: "block",
+              listStyle: "none",
+              padding: 0,
+              margin: 0,
+            }}
+          >
             {navItems.map(({ path, label, icon }) => (
-              <Link
-                key={path}
-                to={path}
-                onClick={closeMenu}
-                className={`flex items-center gap-2 px-4 py-3 transition w-full border-b border-gray-100
-                ${
-                  location.pathname === path
-                    ? "bg-blue-100 text-blue-700"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                {icon}
-                <span>{label}</span>
-              </Link>
+              <li key={path} style={{ display: "block", width: "100%" }}>
+                <Link
+                  to={path}
+                  onClick={closeMenu}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "12px 16px",
+                    borderBottom: "1px solid #eee",
+                    color: location.pathname === path ? "#1d4ed8" : "#333",
+                    backgroundColor:
+                      location.pathname === path ? "#dbeafe" : "transparent",
+                    textDecoration: "none",
+                    width: "100%",
+                  }}
+                >
+                  <span style={{ marginLeft: "8px" }}>{icon}</span>
+                  <span>{label}</span>
+                </Link>
+              </li>
             ))}
-            <button
-              onClick={() => alert("התנתקות עדיין לא פעילה")}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 text-right w-full"
-            >
-              <LogOut />
-              <span>התנתק</span>
-            </button>
-          </nav>
+            <li style={{ display: "block", width: "100%" }}>
+              <button
+                onClick={() => alert("התנתקות עדיין לא פעילה")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "12px 16px",
+                  borderBottom: "1px solid #eee",
+                  color: "#333",
+                  backgroundColor: "transparent",
+                  textDecoration: "none",
+                  width: "100%",
+                  textAlign: "right",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                }}
+              >
+                <span style={{ marginLeft: "8px" }}>
+                  <LogOut />
+                </span>
+                <span>התנתק</span>
+              </button>
+            </li>
+          </ul>
         </div>
       )}
 
