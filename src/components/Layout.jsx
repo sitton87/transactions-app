@@ -35,9 +35,9 @@ export default function Layout({ children }) {
           <img
             src={logoImage}
             alt="לוגו עזרה לזולת"
-            className="h-8 w-auto ml-2"
+            className="h-6 w-20 object-contain ml-2"
           />
-          <h1 className="text-lg font-bold">עזר לזולת</h1>
+          <h1 className="text-lg font-bold">עזרה לזולת</h1>
         </div>
         <button onClick={toggleMenu} aria-label="תפריט">
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
