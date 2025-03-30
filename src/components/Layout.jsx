@@ -37,7 +37,8 @@ export default function Layout({ children }) {
             alt="לוגו עזרה לזולת"
             style={{
               transform: "scale(0.6)", // מקטין ל-20% מהגודל המקורי
-              transformOrigin: "left center",
+              transformOrigin: "right center", // שינוי מ-left ל-right
+              marginRight: "0px", // מבטיח שהתמונה צמודה לצד ימין
               marginLeft: "8px",
             }}
           />
