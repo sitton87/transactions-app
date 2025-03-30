@@ -12,7 +12,7 @@ import {
 
 const navItems = [
   { path: "/add", label: "הוסף עסקה", icon: <PlusCircle /> },
-  { path: "/transactions", label: "עסקאות", icon: <ReceiptText /> },
+  { path: "/transactions", label: "תתתתתתתתתתעסקאות", icon: <ReceiptText /> },
   { path: "/settings", label: "הגדרות", icon: <Settings /> },
   { path: "/users", label: "ניהול משתמשים", icon: <Users /> },
 ];
