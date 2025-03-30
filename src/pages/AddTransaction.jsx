@@ -9,49 +9,88 @@ const CameraUpload = ({ onImageCapture }) => {
   const streamRef = useRef(null);
   const containerRef = useRef(null);
 
-  // פתיחת המצלמה - עם הגדרה מפורשת למצלמה האחורית
+  // פתיחת המצלמה - גישה אלטרנטיבית
   const openCamera = async () => {
     try {
-      // ננסה קודם את המצלמה האחורית
-      let stream;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { exact: "environment" },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-          audio: false,
-        });
-        console.log("מצלמה אחורית נפתחה בהצלחה");
-      } catch (err) {
-        // אם אין מצלמה אחורית, ננסה כל מצלמה זמינה
-        console.log("אין גישה למצלמה האחורית, מנסה מצלמה אחרת", err);
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
-        console.log("נפתחה מצלמה חלופית");
+      // סגירה של כל זרמי מצלמה פתוחים קודמים
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
       }
+
+      console.log("מתחיל לפתוח את המצלמה");
+
+      // הגדרות יותר בסיסיות למצלמה
+      const constraints = {
+        audio: false,
+        video: {
+          facingMode: "environment", // ננסה את המצלמה האחורית ללא 'exact'
+          width: { ideal: 640 }, // רזולוציה נמוכה יותר
+          height: { ideal: 480 },
+        },
+      };
+
+      console.log(
+        "מנסה לקבל גישה למצלמה עם הגדרות:",
+        JSON.stringify(constraints)
+      );
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log("הצלחנו לקבל גישה למצלמה");
 
       streamRef.current = stream;
 
+      // וידוא שהאלמנט קיים
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+        console.log("מגדיר את ה-srcObject של אלמנט הוידאו");
 
-        // מוודא שהמצלמה מוכנה לפני הפעלה
-        videoRef.current.onloadedmetadata = () => {
-          console.log("המצלמה נטענה, מתחיל הפעלה");
-          videoRef.current
-            .play()
-            .catch((e) => console.error("שגיאה בהפעלת וידאו:", e));
-        };
+        // ניקוי קודם
+        videoRef.current.srcObject = null;
+
+        // הגדרה מחדש של זרם הוידאו
+        videoRef.current.srcObject = stream;
+        videoRef.current.muted = true;
+        videoRef.current.playsInline = true;
+
+        // הפעלה מיידית
+        try {
+          console.log("מנסה להפעיל את הוידאו");
+          await videoRef.current.play();
+          console.log("הוידאו הופעל בהצלחה");
+        } catch (playError) {
+          console.error("שגיאה בהפעלת הוידאו:", playError);
+
+          // ננסה שוב עם השהיה
+          setTimeout(async () => {
+            try {
+              await videoRef.current.play();
+              console.log("הוידאו הופעל בהצלחה אחרי השהיה");
+            } catch (delayedPlayError) {
+              console.error(
+                "שגיאה גם בניסיון השני להפעלת הוידאו:",
+                delayedPlayError
+              );
+            }
+          }, 1000);
+        }
+      } else {
+        console.error("אלמנט הוידאו לא קיים!");
       }
 
       setShowCamera(true);
     } catch (error) {
       console.error("שגיאה בגישה למצלמה:", error);
-      alert("לא ניתן לגשת למצלמה. אנא בדוק את ההרשאות או נסה במכשיר אחר.");
+
+      // הודעות שגיאה ספציפיות יותר
+      if (error.name === "NotAllowedError") {
+        alert("הגישה למצלמה נדחתה. אנא אשר את הגישה בדפדפן.");
+      } else if (error.name === "NotFoundError") {
+        alert("לא נמצאה מצלמה במכשיר שלך.");
+      } else if (error.name === "NotReadableError") {
+        alert("לא ניתן לגשת למצלמה. ייתכן שהמצלמה בשימוש באפליקציה אחרת.");
+      } else {
+        alert(`לא ניתן לגשת למצלמה: ${error.message}`);
+      }
     }
   };
 
@@ -67,8 +106,27 @@ const CameraUpload = ({ onImageCapture }) => {
   const captureImage = () => {
     if (!videoRef.current) return;
 
+    // בדיקת תקינות הוידאו
+    console.log("מנסה לצלם, האם יש וידאו?", !!videoRef.current);
+    if (videoRef.current) {
+      console.log("מידות הוידאו:", {
+        videoWidth: videoRef.current.videoWidth,
+        videoHeight: videoRef.current.videoHeight,
+        offsetWidth: videoRef.current.offsetWidth,
+        offsetHeight: videoRef.current.offsetHeight,
+        readyState: videoRef.current.readyState,
+      });
+    }
+
     try {
       const video = videoRef.current;
+
+      // אם הוידאו לא טעון, הודע למשתמש
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        console.error("הוידאו לא טעון כראוי - אין ממדים");
+        alert("המצלמה לא מוכנה לצילום. אנא נסה שוב.");
+        return;
+      }
 
       // יצירת קנבס בגודל מלא של הוידאו
       const canvas = document.createElement("canvas");
