@@ -73,13 +73,17 @@ export default function Layout({ children }) {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50" dir="rtl">
       {/* Header */}
-      <header className="flex items-center justify-between p-4 bg-white shadow fixed top-0 right-0 w-full z-30">
-        <div className="flex items-center">
-          <h1 className="text-lg font-bold">עזר לזולת</h1>
-        </div>
-        <button onClick={toggleMenu} aria-label="תפריט">
+      <header className="flex items-center p-4 bg-white shadow fixed top-0 right-0 w-full z-30">
+        <button
+          onClick={toggleMenu}
+          className="absolute right-4"
+          aria-label="תפריט"
+        >
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
+        <div className="flex-1 flex justify-center">
+          <h1 className="text-lg font-bold">עזר לזולת</h1>
+        </div>
       </header>
 
       {/* Overlay */}
