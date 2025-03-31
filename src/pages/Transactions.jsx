@@ -37,34 +37,82 @@ function Transactions() {
 
         const { data, error } = await supabase
           .from("transactions")
-          .select("*")
+          .select(
+            `
+            id,
+            date,
+            type,
+            amount,
+            invoice_number,
+            document_url,
+            suppliers(name),
+            categories(name),
+            subcategories(name),
+            payment_methods(name),
+            source_types(name),
+            source_codes(code)
+          `
+          )
           .order("date", { ascending: false });
 
         if (error) {
           throw error;
         }
 
-        setTransactions(data || []);
-
         // הכנת אפשרויות סינון מהנתונים
+        // עיבוד הנתונים שהגיעו מהשרת
         if (data && data.length > 0) {
+          // המרת מבנה הנתונים למבנה שטוח יותר עבור השימוש בקומפוננטה
+          const formattedData = data.map((item) => ({
+            id: item.id,
+            date: item.date,
+            // המרת סוג העסקה מאנגלית לעברית
+            type:
+              item.type === "income"
+                ? "הכנסה"
+                : item.type === "expense"
+                ? "הוצאה"
+                : item.type,
+            amount: item.amount,
+            invoice_number: item.invoice_number,
+            document_url: item.document_url,
+            // שליפת הערכים מטבלאות קשורות
+            business: item.suppliers?.name || "",
+            category: item.categories?.name || "",
+            subcategory: item.subcategories?.name || "",
+            payment_method: item.payment_methods?.name || "",
+            source_type: item.source_types?.name || "",
+            source_code: item.source_codes?.code || "",
+            description: item.invoice_number || "", // אם אין שדה תיאור נשתמש במספר חשבונית כתיאור
+          }));
+
+          setTransactions(formattedData);
+
           // עסקים ייחודיים
           const uniqueBusinesses = [
-            ...new Set(data.map((item) => item.business).filter(Boolean)),
+            ...new Set(
+              formattedData.map((item) => item.business).filter(Boolean)
+            ),
           ];
           setBusinesses(uniqueBusinesses.sort());
 
           // קטגוריות ייחודיות
           const uniqueCategories = [
-            ...new Set(data.map((item) => item.category).filter(Boolean)),
+            ...new Set(
+              formattedData.map((item) => item.category).filter(Boolean)
+            ),
           ];
           setCategories(uniqueCategories.sort());
 
           // תת-קטגוריות ייחודיות
           const uniqueSubcategories = [
-            ...new Set(data.map((item) => item.subcategory).filter(Boolean)),
+            ...new Set(
+              formattedData.map((item) => item.subcategory).filter(Boolean)
+            ),
           ];
           setSubcategories(uniqueSubcategories.sort());
+        } else {
+          setTransactions([]);
         }
       } catch (error) {
         console.error("שגיאה בטעינת העסקאות:", error);
