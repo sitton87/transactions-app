@@ -254,10 +254,19 @@ const AddTransaction = () => {
         paymentNumber: "",
       });
 
+      // איפוס התת-קטגוריות ומספרי אמצעי תשלום המסוננים
+      setDropdownData({
+        ...dropdownData,
+        filteredSubcategories: [],
+        filteredPaymentNumbers: [],
+      });
+
+      // להציג הודעת הצלחה
       alert("העסקה נשמרה בהצלחה!");
 
-      // ניווט לדף העסקאות
-      navigate("/transactions");
+      // במקום לנווט לדף אחר, אנחנו נשארים באותו דף עם הטופס מאופס
+      // שורת הניווט הבאה מבוטלת:
+      // navigate("/transactions");
     } catch (error) {
       console.error("Error saving transaction:", error);
       alert(`אירעה שגיאה בשמירת העסקה: ${error.message}`);
