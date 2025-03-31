@@ -227,3 +227,18 @@
 .selected-document button:hover {
   background-color: #d32f2f;
 }
+/* הוספה לקובץ src/styles/TransactionForms.css */
+
+/* מניעת זום אוטומטי בשדות טקסט ומספרים */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+  font-size: 16px; /* פונט בגודל שמונע זום אוטומטי (מעל 16px) */
+  max-height: 44px; /* גובה שמתאים למובייל */
+  touch-action: manipulation; /* מניעת פעולות מגע מיוחדות */
+}
+
+/* הוספת מטה-תג ב-HTML */
+/* יש להוסיף את השורה הבאה לקובץ public/index.html בתוך תגית ה-head */
+/* <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"> */

@@ -1,4 +1,4 @@
-// src/components/DocumentCamera.jsx
+// src/components/DocumentCamera.jsx - תיקון בעיות תצוגה ומיקום
 import React, { useState, useRef, useEffect } from "react";
 import "../styles/DocumentCamera.css";
 
@@ -16,10 +16,15 @@ const DocumentCamera = ({ onCapture, onClose }) => {
   // התחלת המצלמה
   useEffect(() => {
     startCamera();
+
+    // מניעת גלילה בגוף המסמך כשהמצלמה פתוחה
+    document.body.style.overflow = "hidden";
+
     return () => {
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
       }
+      document.body.style.overflow = "";
     };
   }, []);
 
@@ -35,27 +40,32 @@ const DocumentCamera = ({ onCapture, onClose }) => {
 
       videoRef.current.srcObject = mediaStream;
       setStream(mediaStream);
+
+      // מחכים שהוידאו יטען כדי להגדיר את אזור החיתוך
+      videoRef.current.onloadedmetadata = () => {
+        const videoWidth = videoRef.current.videoWidth;
+        const videoHeight = videoRef.current.videoHeight;
+
+        // הגדרת אזור חיתוך בהתאם לגודל המסך
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+
+        // חישוב מידות אזור החיתוך להיות בתוך המסך
+        const cropWidth = Math.min(videoWidth * 0.8, screenWidth * 0.8);
+        const cropHeight = Math.min(videoHeight * 0.6, screenHeight * 0.5);
+
+        setCropArea({
+          x: (screenWidth - cropWidth) / 2,
+          y: (screenHeight - cropHeight) / 2,
+          width: cropWidth,
+          height: cropHeight,
+        });
+      };
     } catch (error) {
       console.error("Error accessing camera:", error);
       alert("לא ניתן לגשת למצלמה. אנא ודא כי הינך מאשר גישה למצלמה.");
     }
   };
-
-  // יצירת מסגרת הגדרת שטח הצילום
-  useEffect(() => {
-    if (videoRef.current && videoRef.current.videoWidth) {
-      const videoWidth = videoRef.current.videoWidth;
-      const videoHeight = videoRef.current.videoHeight;
-
-      // התחלת המסגרת עם מידות ברירת מחדל
-      setCropArea({
-        x: videoWidth * 0.1,
-        y: videoHeight * 0.1,
-        width: videoWidth * 0.8,
-        height: videoHeight * 0.8,
-      });
-    }
-  }, [stream]);
 
   // צילום תמונה
   const captureImage = () => {
@@ -69,32 +79,59 @@ const DocumentCamera = ({ onCapture, onClose }) => {
 
       const ctx = canvas.getContext("2d");
 
-      // צייר את התמונה
+      // צייר את התמונה המלאה
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // חתוך את האזור המסומן
-      const imageData = ctx.getImageData(
-        cropArea.x,
-        cropArea.y,
-        cropArea.width,
-        cropArea.height
-      );
+      // מציאת יחס המידה בין הוידאו לבין מה שמוצג במסך
+      const videoRatio = {
+        x: video.videoWidth / video.offsetWidth,
+        y: video.videoHeight / video.offsetHeight,
+      };
 
-      // יצירת קנבס חדש בגודל האזור החתוך
-      const croppedCanvas = document.createElement("canvas");
-      croppedCanvas.width = cropArea.width;
-      croppedCanvas.height = cropArea.height;
-      const croppedCtx = croppedCanvas.getContext("2d");
-      croppedCtx.putImageData(imageData, 0, 0);
+      // חישוב מיקום וגודל אזור החיתוך בקואורדינטות של הוידאו המקורי
+      const scaledCrop = {
+        x: cropArea.x * videoRatio.x,
+        y: cropArea.y * videoRatio.y,
+        width: cropArea.width * videoRatio.x,
+        height: cropArea.height * videoRatio.y,
+      };
 
-      // המרה לתמונה
-      const capturedImage = croppedCanvas.toDataURL("image/jpeg", 0.9);
+      // ודא שאזור החיתוך נמצא בגבולות התמונה
+      const validCrop = {
+        x: Math.max(0, Math.min(scaledCrop.x, canvas.width - 10)),
+        y: Math.max(0, Math.min(scaledCrop.y, canvas.height - 10)),
+        width: Math.min(scaledCrop.width, canvas.width - validCrop.x),
+        height: Math.min(scaledCrop.height, canvas.height - validCrop.y),
+      };
 
-      if (isMultipleMode) {
-        setCapturedImages([...capturedImages, capturedImage]);
-      } else {
-        setCurrentImage(capturedImage);
-        setShowPreview(true);
+      // חיתוך האזור המסומן
+      try {
+        const imageData = ctx.getImageData(
+          validCrop.x,
+          validCrop.y,
+          validCrop.width,
+          validCrop.height
+        );
+
+        // יצירת קנבס חדש בגודל האזור החתוך
+        const croppedCanvas = document.createElement("canvas");
+        croppedCanvas.width = validCrop.width;
+        croppedCanvas.height = validCrop.height;
+        const croppedCtx = croppedCanvas.getContext("2d");
+        croppedCtx.putImageData(imageData, 0, 0);
+
+        // המרה לתמונה
+        const capturedImage = croppedCanvas.toDataURL("image/jpeg", 0.9);
+
+        if (isMultipleMode) {
+          setCapturedImages([...capturedImages, capturedImage]);
+        } else {
+          setCurrentImage(capturedImage);
+          setShowPreview(true);
+        }
+      } catch (e) {
+        console.error("Error capturing image:", e);
+        alert("אירעה שגיאה בצילום התמונה. נסה שוב.");
       }
     }
   };
@@ -104,10 +141,15 @@ const DocumentCamera = ({ onCapture, onClose }) => {
     if (currentImage) {
       if (isMultipleMode) {
         // במצב מרובה, שמור את כל התמונות
-        mergeImages(capturedImages).then((mergedImage) => {
-          onCapture(dataURLtoFile(mergedImage, "document.jpg"));
-          onClose();
-        });
+        mergeImages(capturedImages)
+          .then((mergedImage) => {
+            onCapture(dataURLtoFile(mergedImage, "document.jpg"));
+            onClose();
+          })
+          .catch((e) => {
+            console.error("Error merging images:", e);
+            alert("אירעה שגיאה במיזוג התמונות. נסה שוב.");
+          });
       } else {
         // במצב יחיד, שמור את התמונה הנוכחית
         onCapture(dataURLtoFile(currentImage, "document.jpg"));
@@ -178,10 +220,15 @@ const DocumentCamera = ({ onCapture, onClose }) => {
   // סיום ומיזוג במצב מרובה
   const finishMultipleCapture = () => {
     if (capturedImages.length > 0) {
-      mergeImages(capturedImages).then((mergedImage) => {
-        setCurrentImage(mergedImage);
-        setShowPreview(true);
-      });
+      mergeImages(capturedImages)
+        .then((mergedImage) => {
+          setCurrentImage(mergedImage);
+          setShowPreview(true);
+        })
+        .catch((e) => {
+          console.error("Error merging images:", e);
+          alert("אירעה שגיאה במיזוג התמונות. נסה שוב.");
+        });
     } else {
       alert("לא צולמו תמונות עדיין");
     }
@@ -195,11 +242,15 @@ const DocumentCamera = ({ onCapture, onClose }) => {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // עדכון מיקום המסגרת
+    // וידוא שהמסגרת נשארת בתוך המסך
+    const maxX = window.innerWidth - cropArea.width;
+    const maxY = window.innerHeight - cropArea.height;
+
+    // עדכון מיקום המסגרת עם הגבלה לגבולות המסך
     setCropArea((prevCrop) => ({
       ...prevCrop,
-      x: x - prevCrop.width / 2,
-      y: y - prevCrop.height / 2,
+      x: Math.max(0, Math.min(maxX, e.clientX - prevCrop.width / 2)),
+      y: Math.max(0, Math.min(maxY, e.clientY - prevCrop.height / 2)),
     }));
   };
 
@@ -213,18 +264,6 @@ const DocumentCamera = ({ onCapture, onClose }) => {
             autoPlay
             playsInline
             className="camera-preview"
-            onLoadedMetadata={() => {
-              // התאמת הגודל כשהוידאו נטען
-              if (videoRef.current) {
-                const { videoWidth, videoHeight } = videoRef.current;
-                setCropArea({
-                  x: videoWidth * 0.1,
-                  y: videoHeight * 0.1,
-                  width: videoWidth * 0.8,
-                  height: videoHeight * 0.8,
-                });
-              }
-            }}
           />
 
           {/* מסגרת ירוקה לשטח צילום */}
