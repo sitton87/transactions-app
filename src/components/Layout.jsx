@@ -73,7 +73,8 @@ export default function Layout({ children }) {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50" dir="rtl">
       {/* Header */}
-      <header className="relative flex items-center justify-center p-4 bg-white shadow fixed top-0 right-0 w-full z-30">
+      {/* Header */}
+      <header className="fixed top-0 right-0 w-full p-4 bg-white shadow z-30 flex justify-center items-center">
         <button
           onClick={toggleMenu}
           className="absolute right-4"
