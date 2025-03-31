@@ -29,7 +29,7 @@ export default function Layout({ children }) {
       {/* Header */}
       <header className="flex items-center justify-between p-4 bg-white shadow fixed top-0 right-0 w-full z-30">
         <div className="flex items-center">
-          <h1 className="text-lg font-bold">עזרה לזולת</h1>
+          <h1 className="text-lg font-bold">עזר לזולת</h1>
         </div>
         <button onClick={toggleMenu} aria-label="תפריט">
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
