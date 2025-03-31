@@ -553,7 +553,14 @@ function Transactions() {
                       <td style={{ padding: "0.75rem" }}>
                         {transaction.description}
                       </td>
-                      <td style={{ padding: "0.75rem" }}>{transaction.type}</td>
+                      <td
+                        style={{
+                          padding: "0.75rem",
+                          color: transaction.type === "הכנסה" ? "green" : "red",
+                        }}
+                      >
+                        {transaction.type}
+                      </td>
                       <td
                         style={{
                           padding: "0.75rem",
@@ -587,30 +594,6 @@ function Transactions() {
           </div>
         </>
       )}
-
-      {/* כפתור הוספת עסקה חדשה */}
-      <button
-        onClick={() => {
-          // כאן תוכל להוסיף לוגיקה לפתיחת טופס הוספת עסקה חדשה
-          console.log("פתיחת טופס עסקה חדשה");
-        }}
-        style={{
-          position: "fixed",
-          bottom: "2rem",
-          left: "2rem",
-          padding: "0.75rem 1.5rem",
-          backgroundColor: "#3f51b5",
-          color: "white",
-          border: "none",
-          borderRadius: "50px",
-          cursor: "pointer",
-          boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-          fontSize: "1rem",
-          fontWeight: "bold",
-        }}
-      >
-        + הוסף עסקה חדשה
-      </button>
     </div>
   );
 }
