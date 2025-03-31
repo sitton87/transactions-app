@@ -1,7 +1,8 @@
 // src/components/Layout.jsx
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../styles/TransactionForms.css";
+import { useAuth } from "../context/auth-context"; // ייבוא הוק האימות
 import {
   Menu,
   X,
@@ -10,20 +11,64 @@ import {
   Settings,
   Users,
   LogOut,
+  LogIn,
 } from "lucide-react";
-const navItems = [
-  { path: "/add", label: "הוסף עסקה", icon: <PlusCircle /> },
-  { path: "/transactions", label: "עסקאות", icon: <ReceiptText /> },
-  { path: "/settings", label: "הגדרות", icon: <Settings /> },
-  { path: "/users", label: "ניהול משתמשים", icon: <Users /> },
-];
 
 export default function Layout({ children }) {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, userProfile, signOut, hasPermission, isAuthenticated } =
+    useAuth(); // שימוש בהוק האימות
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
+
+  // פונקציה להתנתקות
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/login");
+    closeMenu();
+  };
+
+  // מגדיר את פריטי התפריט עם בדיקת הרשאות
+  const getNavItems = () => {
+    const items = [
+      {
+        path: "/add",
+        label: "הוסף עסקה",
+        icon: <PlusCircle />,
+        requiresAuth: true,
+      },
+      {
+        path: "/transactions",
+        label: "עסקאות",
+        icon: <ReceiptText />,
+        requiresAuth: true,
+      },
+      {
+        path: "/settings",
+        label: "הגדרות",
+        icon: <Settings />,
+        requiresAuth: true,
+      },
+    ];
+
+    // הוספת ניהול משתמשים רק למי שיש לו הרשאה מתאימה
+    if (hasPermission("users:manage")) {
+      items.push({
+        path: "/users",
+        label: "ניהול משתמשים",
+        icon: <Users />,
+        requiresAuth: true,
+      });
+    }
+
+    // מחזיר רק את הפריטים הרלוונטיים למצב ההתחברות של המשתמש
+    return items.filter((item) => !item.requiresAuth || isAuthenticated);
+  };
+
+  const navItems = getNavItems();
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50" dir="rtl">
@@ -59,6 +104,27 @@ export default function Layout({ children }) {
               margin: 0,
             }}
           >
+            {/* פרטי המשתמש המחובר */}
+            {isAuthenticated && (
+              <div
+                style={{
+                  padding: "12px 16px",
+                  borderBottom: "1px solid #eee",
+                  backgroundColor: "#f9fafb",
+                  textAlign: "center",
+                }}
+              >
+                <p style={{ fontWeight: "bold" }}>
+                  {user?.email || "משתמש מחובר"}
+                </p>
+                {userProfile?.full_name && (
+                  <p style={{ fontSize: "0.8rem", color: "#4b5563" }}>
+                    {userProfile.full_name}
+                  </p>
+                )}
+              </div>
+            )}
+
             {navItems.map(({ path, label, icon }) => (
               <li key={path} style={{ display: "block", width: "100%" }}>
                 <Link
@@ -81,29 +147,55 @@ export default function Layout({ children }) {
                 </Link>
               </li>
             ))}
+
+            {/* כפתור התחברות/התנתקות */}
             <li style={{ display: "block", width: "100%" }}>
-              <button
-                onClick={() => alert("התנתקות עדיין לא פעילה")}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "12px 16px",
-                  borderBottom: "1px solid #eee",
-                  color: "#333",
-                  backgroundColor: "transparent",
-                  textDecoration: "none",
-                  width: "100%",
-                  textAlign: "right",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "1rem",
-                }}
-              >
-                <span style={{ marginLeft: "8px" }}>
-                  <LogOut />
-                </span>
-                <span>התנתק</span>
-              </button>
+              {isAuthenticated ? (
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "12px 16px",
+                    borderBottom: "1px solid #eee",
+                    color: "#333",
+                    backgroundColor: "transparent",
+                    textDecoration: "none",
+                    width: "100%",
+                    textAlign: "right",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "1rem",
+                  }}
+                >
+                  <span style={{ marginLeft: "8px" }}>
+                    <LogOut />
+                  </span>
+                  <span>התנתק</span>
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={closeMenu}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "12px 16px",
+                    borderBottom: "1px solid #eee",
+                    color: "#333",
+                    backgroundColor: "transparent",
+                    textDecoration: "none",
+                    width: "100%",
+                    textAlign: "right",
+                    fontSize: "1rem",
+                  }}
+                >
+                  <span style={{ marginLeft: "8px" }}>
+                    <LogIn />
+                  </span>
+                  <span>התחבר</span>
+                </Link>
+              )}
             </li>
           </ul>
         </div>
