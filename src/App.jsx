@@ -21,3 +21,13 @@ function App() {
 }
 
 export default App;
+// בקובץ _app.jsx
+import { AuthProvider } from "../context/auth-context";
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <AuthProvider>
+      <Component {...pageProps} />
+    </AuthProvider>
+  );
+}
