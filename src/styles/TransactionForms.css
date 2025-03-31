@@ -1,0 +1,186 @@
+/* src/styles/TransactionForms.css */
+.transaction-form-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  direction: rtl;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Arial, sans-serif;
+}
+
+.transaction-form-container h1 {
+  color: #333;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.transaction-type-selector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+  gap: 10px;
+}
+
+.transaction-type-selector button {
+  padding: 10px 20px;
+  border: none;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  min-width: 120px;
+  transition: all 0.3s ease;
+}
+
+.transaction-type-selector button.active {
+  background-color: #0070f3;
+  color: white;
+}
+
+.transaction-form {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+}
+
+.income-form,
+.expense-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .income-form,
+  .expense-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 5px;
+  color: #444;
+}
+
+.form-group input,
+.form-group select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #0070f3;
+  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.1);
+}
+
+.form-group input[type="file"] {
+  padding: 8px;
+  border: 1px dashed #ddd;
+  background-color: #f9f9f9;
+}
+
+.form-group small {
+  margin-top: 4px;
+  color: #777;
+  font-size: 12px;
+}
+
+.form-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.form-actions button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.submit-button {
+  background-color: #0070f3;
+  color: white;
+}
+
+.submit-button:hover {
+  background-color: #0058c1;
+}
+
+.submit-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.cancel-button:hover {
+  background-color: #e0e0e0;
+}
+
+.cancel-button:disabled {
+  background-color: #f0f0f0;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* סגנון עבור שדות חובה */
+.form-group label::after {
+  content: "*";
+  color: red;
+  margin-right: 4px;
+}
+
+.form-group label[for="document"]::after {
+  display: none;
+}
+
+.form-group input:disabled,
+.form-group select:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+/* אנימציית טעינה */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  font-size: 18px;
+  color: #555;
+}
+
+/* הודעות שגיאה */
+.error-message {
+  color: #d32f2f;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* הודעות הצלחה */
+.success-message {
+  color: #388e3c;
+  font-size: 14px;
+  margin-top: 4px;
+}
