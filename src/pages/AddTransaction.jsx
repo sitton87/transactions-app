@@ -3,11 +3,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import "../styles/TransactionForms.css";
+import DocumentCamera from "../components/DocumentCamera";
 
 const AddTransaction = () => {
   const navigate = useNavigate();
   const [transactionType, setTransactionType] = useState("income"); // 'income' או 'expense'
   const [isLoading, setIsLoading] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
   const [formData, setFormData] = useState({
     // שדות משותפים
     date: "",
@@ -188,6 +190,20 @@ const AddTransaction = () => {
     }
   };
 
+  // פונקציות לטיפול במצלמה
+  const handleOpenCamera = () => {
+    setShowCamera(true);
+  };
+
+  const handleCaptureDocument = (file) => {
+    setFormData({ ...formData, document: file });
+    setShowCamera(false);
+  };
+
+  const handleCloseCamera = () => {
+    setShowCamera(false);
+  };
+
   // שליחת הטופס
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -265,7 +281,6 @@ const AddTransaction = () => {
       alert("העסקה נשמרה בהצלחה!");
 
       // במקום לנווט לדף אחר, אנחנו נשארים באותו דף עם הטופס מאופס
-      // שורת הניווט הבאה מבוטלת:
       // navigate("/transactions");
     } catch (error) {
       console.error("Error saving transaction:", error);
@@ -380,13 +395,36 @@ const AddTransaction = () => {
 
             <div className="form-group">
               <label htmlFor="document">הוספת מסמך</label>
-              <input
-                type="file"
-                id="document"
-                name="document"
-                onChange={handleChange}
-                accept=".pdf,.jpg,.jpeg,.png"
-              />
+              <div className="document-upload-container">
+                <input
+                  type="file"
+                  id="document"
+                  name="document"
+                  onChange={handleChange}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  style={{ display: formData.document ? "none" : "block" }}
+                />
+                {formData.document && (
+                  <div className="selected-document">
+                    <span>{formData.document.name}</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData({ ...formData, document: null })
+                      }
+                    >
+                      הסר
+                    </button>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="camera-button"
+                  onClick={handleOpenCamera}
+                >
+                  צלם מסמך
+                </button>
+              </div>
               <small>(אופציונלי)</small>
             </div>
           </div>
@@ -541,13 +579,36 @@ const AddTransaction = () => {
 
             <div className="form-group">
               <label htmlFor="document">הוספת מסמך</label>
-              <input
-                type="file"
-                id="document"
-                name="document"
-                onChange={handleChange}
-                accept=".pdf,.jpg,.jpeg,.png"
-              />
+              <div className="document-upload-container">
+                <input
+                  type="file"
+                  id="document"
+                  name="document"
+                  onChange={handleChange}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  style={{ display: formData.document ? "none" : "block" }}
+                />
+                {formData.document && (
+                  <div className="selected-document">
+                    <span>{formData.document.name}</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData({ ...formData, document: null })
+                      }
+                    >
+                      הסר
+                    </button>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="camera-button"
+                  onClick={handleOpenCamera}
+                >
+                  צלם מסמך
+                </button>
+              </div>
               <small>(אופציונלי)</small>
             </div>
           </div>
@@ -567,6 +628,13 @@ const AddTransaction = () => {
           </button>
         </div>
       </form>
+
+      {showCamera && (
+        <DocumentCamera
+          onCapture={handleCaptureDocument}
+          onClose={handleCloseCamera}
+        />
+      )}
     </div>
   );
 };

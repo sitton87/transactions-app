@@ -184,3 +184,46 @@
   font-size: 14px;
   margin-top: 4px;
 }
+/* הוספה לקובץ src/styles/TransactionForms.css */
+
+.document-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.camera-button {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.camera-button:hover {
+  background-color: #0b7dda;
+}
+
+.selected-document {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f0f0f0;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.selected-document button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.selected-document button:hover {
+  background-color: #d32f2f;
+}
