@@ -1,4 +1,4 @@
-// src/components/DocumentCamera.jsx - תיקון בעיות תצוגה ומיקום
+// src/components/DocumentCamera.jsx - תיקון בעיות תצוגה ושחרור משאבים
 import React, { useState, useRef, useEffect } from "react";
 import "../styles/DocumentCamera.css";
 
@@ -12,55 +12,80 @@ const DocumentCamera = ({ onCapture, onClose }) => {
   const [currentImage, setCurrentImage] = useState(null);
   const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const cropAreaRef = useRef(null);
+  const [cameraReady, setCameraReady] = useState(false);
 
   // התחלת המצלמה
   useEffect(() => {
-    startCamera();
-
-    // מניעת גלילה בגוף המסמך כשהמצלמה פתוחה
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
+    const initCamera = async () => {
+      try {
+        await startCamera();
+        // מניעת גלילה בגוף המסמך כשהמצלמה פתוחה
+        document.body.style.overflow = "hidden";
+      } catch (error) {
+        console.error("Error initializing camera:", error);
       }
+    };
+
+    initCamera();
+
+    // שחרור משאבים כשהקומפוננטה נעלמת
+    return () => {
+      releaseCamera();
       document.body.style.overflow = "";
     };
   }, []);
 
+  // פונקציה לשחרור משאבי המצלמה
+  const releaseCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach((track) => {
+        track.stop();
+      });
+      setStream(null);
+    }
+    if (videoRef.current && videoRef.current.srcObject) {
+      videoRef.current.srcObject = null;
+    }
+  };
+
   const startCamera = async () => {
     try {
+      // שחרור משאבים קודמים אם קיימים
+      releaseCamera();
+
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: "environment" }, // מצלמה אחורית
-          width: { ideal: window.innerWidth },
-          height: { ideal: window.innerHeight },
+          width: { ideal: 4096 },
+          height: { ideal: 2160 },
         },
       });
 
-      videoRef.current.srcObject = mediaStream;
-      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+        setStream(mediaStream);
 
-      // מחכים שהוידאו יטען כדי להגדיר את אזור החיתוך
-      videoRef.current.onloadedmetadata = () => {
-        const videoWidth = videoRef.current.videoWidth;
-        const videoHeight = videoRef.current.videoHeight;
+        // הגדרת אירוע כשהוידאו מוכן
+        videoRef.current.onloadedmetadata = () => {
+          setCameraReady(true);
 
-        // הגדרת אזור חיתוך בהתאם לגודל המסך
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
+          // חישוב מימדי המצלמה
+          const screenWidth = window.innerWidth;
+          const screenHeight = window.innerHeight;
 
-        // חישוב מידות אזור החיתוך להיות בתוך המסך
-        const cropWidth = Math.min(videoWidth * 0.8, screenWidth * 0.8);
-        const cropHeight = Math.min(videoHeight * 0.6, screenHeight * 0.5);
+          // הגדרת אזור חיתוך בגודל 80% משטח המסך
+          const cropWidth = screenWidth * 0.8;
+          const cropHeight = screenHeight * 0.8;
 
-        setCropArea({
-          x: (screenWidth - cropWidth) / 2,
-          y: (screenHeight - cropHeight) / 2,
-          width: cropWidth,
-          height: cropHeight,
-        });
-      };
+          // מיקום במרכז המסך
+          setCropArea({
+            x: (screenWidth - cropWidth) / 2,
+            y: (screenHeight - cropHeight) / 4, // קצת יותר למעלה מהמרכז האנכי
+            width: cropWidth,
+            height: cropHeight,
+          });
+        };
+      }
     } catch (error) {
       console.error("Error accessing camera:", error);
       alert("לא ניתן לגשת למצלמה. אנא ודא כי הינך מאשר גישה למצלמה.");
@@ -69,11 +94,16 @@ const DocumentCamera = ({ onCapture, onClose }) => {
 
   // צילום תמונה
   const captureImage = () => {
-    if (videoRef.current && canvasRef.current) {
+    if (!videoRef.current || !canvasRef.current || !cameraReady) {
+      alert("המצלמה עדיין לא מוכנה, אנא המתן רגע");
+      return;
+    }
+
+    try {
       const video = videoRef.current;
       const canvas = canvasRef.current;
 
-      // התאמת גודל הקנבס לגודל הוידאו
+      // התאמת גודל הקנבס לגודל הוידאו המקורי
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
@@ -82,67 +112,61 @@ const DocumentCamera = ({ onCapture, onClose }) => {
       // צייר את התמונה המלאה
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // מציאת יחס המידה בין הוידאו לבין מה שמוצג במסך
-      const videoRatio = {
-        x: video.videoWidth / video.offsetWidth,
-        y: video.videoHeight / video.offsetHeight,
-      };
+      // חישוב יחס הגדלים בין הוידאו המקורי והוידאו המוצג
+      const videoEl = video.getBoundingClientRect();
+      const scaleX = canvas.width / videoEl.width;
+      const scaleY = canvas.height / videoEl.height;
 
-      // חישוב מיקום וגודל אזור החיתוך בקואורדינטות של הוידאו המקורי
-      const scaledCrop = {
-        x: cropArea.x * videoRatio.x,
-        y: cropArea.y * videoRatio.y,
-        width: cropArea.width * videoRatio.x,
-        height: cropArea.height * videoRatio.y,
-      };
+      // התאמת מיקום וגודל המסגרת לקואורדינטות של התמונה המקורית
+      const scaledCropX = (cropArea.x - videoEl.left) * scaleX;
+      const scaledCropY = (cropArea.y - videoEl.top) * scaleY;
+      const scaledCropWidth = cropArea.width * scaleX;
+      const scaledCropHeight = cropArea.height * scaleY;
 
-      // ודא שאזור החיתוך נמצא בגבולות התמונה
-      const validCrop = {
-        x: Math.max(0, Math.min(scaledCrop.x, canvas.width - 10)),
-        y: Math.max(0, Math.min(scaledCrop.y, canvas.height - 10)),
-        width: Math.min(scaledCrop.width, canvas.width - validCrop.x),
-        height: Math.min(scaledCrop.height, canvas.height - validCrop.y),
-      };
+      // אבטחה שלא נחרוג מגבולות התמונה
+      const x = Math.max(0, scaledCropX);
+      const y = Math.max(0, scaledCropY);
+      const width = Math.min(scaledCropWidth, canvas.width - x);
+      const height = Math.min(scaledCropHeight, canvas.height - y);
+
+      if (width <= 0 || height <= 0) {
+        throw new Error("Invalid crop area dimensions");
+      }
 
       // חיתוך האזור המסומן
-      try {
-        const imageData = ctx.getImageData(
-          validCrop.x,
-          validCrop.y,
-          validCrop.width,
-          validCrop.height
-        );
+      const imageData = ctx.getImageData(x, y, width, height);
 
-        // יצירת קנבס חדש בגודל האזור החתוך
-        const croppedCanvas = document.createElement("canvas");
-        croppedCanvas.width = validCrop.width;
-        croppedCanvas.height = validCrop.height;
-        const croppedCtx = croppedCanvas.getContext("2d");
-        croppedCtx.putImageData(imageData, 0, 0);
+      // יצירת קנבס חדש בגודל האזור החתוך
+      const croppedCanvas = document.createElement("canvas");
+      croppedCanvas.width = width;
+      croppedCanvas.height = height;
+      const croppedCtx = croppedCanvas.getContext("2d");
+      croppedCtx.putImageData(imageData, 0, 0);
 
-        // המרה לתמונה
-        const capturedImage = croppedCanvas.toDataURL("image/jpeg", 0.9);
+      // המרה לתמונה
+      const capturedImage = croppedCanvas.toDataURL("image/jpeg", 0.9);
 
-        if (isMultipleMode) {
-          setCapturedImages([...capturedImages, capturedImage]);
-        } else {
-          setCurrentImage(capturedImage);
-          setShowPreview(true);
-        }
-      } catch (e) {
-        console.error("Error capturing image:", e);
-        alert("אירעה שגיאה בצילום התמונה. נסה שוב.");
+      if (isMultipleMode) {
+        setCapturedImages([...capturedImages, capturedImage]);
+      } else {
+        setCurrentImage(capturedImage);
+        setShowPreview(true);
       }
+    } catch (e) {
+      console.error("Error capturing image:", e);
+      alert("אירעה שגיאה בצילום התמונה. נסה שוב.");
     }
   };
 
-  // אישור התמונה במצב יחיד
+  // אישור התמונה
   const confirmImage = () => {
     if (currentImage) {
       if (isMultipleMode) {
         // במצב מרובה, שמור את כל התמונות
         mergeImages(capturedImages)
           .then((mergedImage) => {
+            // שחרור משאבי המצלמה לפני החזרה
+            releaseCamera();
             onCapture(dataURLtoFile(mergedImage, "document.jpg"));
             onClose();
           })
@@ -152,6 +176,8 @@ const DocumentCamera = ({ onCapture, onClose }) => {
           });
       } else {
         // במצב יחיד, שמור את התמונה הנוכחית
+        // שחרור משאבי המצלמה לפני החזרה
+        releaseCamera();
         onCapture(dataURLtoFile(currentImage, "document.jpg"));
         onClose();
       }
@@ -234,13 +260,15 @@ const DocumentCamera = ({ onCapture, onClose }) => {
     }
   };
 
+  // טיפול בסגירה ושחרור משאבים
+  const handleClose = () => {
+    releaseCamera();
+    onClose();
+  };
+
   // מיקום המסגרת הירוקה של שטח הצילום
   const handleCropAreaDrag = (e) => {
     if (!cropAreaRef.current) return;
-
-    const rect = cropAreaRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
 
     // וידוא שהמסגרת נשארת בתוך המסך
     const maxX = window.innerWidth - cropArea.width;
@@ -278,6 +306,7 @@ const DocumentCamera = ({ onCapture, onClose }) => {
               height: `${cropArea.height}px`,
               border: "2px dashed #4CAF50",
               cursor: "move",
+              boxShadow: "0 0 0 2000px rgba(0, 0, 0, 0.5)",
             }}
             onTouchMove={(e) => {
               e.preventDefault();
@@ -314,8 +343,12 @@ const DocumentCamera = ({ onCapture, onClose }) => {
               </button>
             </div>
 
-            <button className="capture-button" onClick={captureImage}>
-              צלם
+            <button
+              className="capture-button"
+              onClick={captureImage}
+              disabled={!cameraReady}
+            >
+              {cameraReady ? "צלם" : "טוען..."}
             </button>
 
             {isMultipleMode && capturedImages.length > 0 && (
@@ -325,7 +358,7 @@ const DocumentCamera = ({ onCapture, onClose }) => {
               </div>
             )}
 
-            <button className="close-button" onClick={onClose}>
+            <button className="close-button" onClick={handleClose}>
               סגור
             </button>
           </div>
@@ -350,7 +383,7 @@ const DocumentCamera = ({ onCapture, onClose }) => {
                 <button onClick={() => setShowPreview(false)}>צלם שוב</button>
               </>
             )}
-            <button onClick={onClose}>בטל</button>
+            <button onClick={handleClose}>בטל</button>
           </div>
         </div>
       )}

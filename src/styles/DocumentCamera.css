@@ -1,4 +1,4 @@
-/* src/styles/DocumentCamera.css - תיקון בעיות תצוגה במובייל */
+/* src/styles/DocumentCamera.css - תיקון בעיות תצוגה */
 
 .document-camera-container {
   position: fixed;
@@ -27,17 +27,19 @@
   height: 100%;
   object-fit: cover;
   max-width: 100vw; /* להגביל לרוחב המסך */
+  transform: none !important; /* מנע טרנספורמציות אוטומטיות */
 }
 
-/* עדכון המיקום והגודל של מסגרת הצילום כדי להתאים למסך */
+/* מסגרת הצילום */
 .crop-area {
   position: absolute;
   box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.5);
-  max-width: 80vw; /* מגביל את רוחב המסגרת ל-80% מרוחב המסך */
-  max-height: 60vh; /* מגביל את גובה המסגרת ל-60% מגובה המסך */
+  z-index: 5;
+  max-width: 90vw; /* הגבלת רוחב מקסימלי */
+  max-height: 90vh; /* הגבלת גובה מקסימלי */
 }
 
-/* עדכון למיקום כפתורי השליטה כך שיהיו תמיד במסך */
+/* כפתורי שליטה */
 .camera-controls {
   position: absolute;
   bottom: 0;
@@ -51,7 +53,6 @@
   z-index: 10; /* להבטיח שהכפתורים יהיו מעל שאר האלמנטים */
 }
 
-/* שאר הסגנונות נשארים כפי שהם */
 .capture-button {
   width: 70px;
   height: 70px;
@@ -65,9 +66,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 16px;
 }
 
-.capture-button:hover {
+.capture-button:disabled {
+  opacity: 0.5;
+  border-color: #999;
+}
+
+.capture-button:hover:not(:disabled) {
   background-color: #f0f0f0;
 }
 
@@ -85,6 +92,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  font-size: 16px;
 }
 
 .mode-selector {
@@ -101,6 +109,7 @@
   color: white;
   padding: 10px 15px;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .mode-selector button.active {
@@ -112,6 +121,7 @@
   color: white;
   margin: 10px 0;
   text-align: center;
+  font-size: 14px;
 }
 
 .multiple-capture-info button {
@@ -122,6 +132,7 @@
   padding: 5px 10px;
   margin-right: 10px;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .preview-view {
@@ -133,6 +144,11 @@
   padding: 20px;
   background-color: #222;
   color: white;
+}
+
+.preview-view h3 {
+  margin-top: 10px;
+  margin-bottom: 20px;
 }
 
 .image-preview {
@@ -168,6 +184,7 @@
   padding: 12px 20px;
   cursor: pointer;
   font-weight: bold;
+  font-size: 16px;
 }
 
 .preview-controls button:nth-child(2) {
