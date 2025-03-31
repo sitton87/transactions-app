@@ -201,13 +201,13 @@ const AddTransaction = () => {
         const fileName = `${Date.now()}.${fileExt}`;
 
         const { data, error } = await supabase.storage
-          .from("transaction_documents")
+          .from("transactiondocuments")
           .upload(fileName, formData.document);
 
         if (error) throw error;
 
         documentUrl = supabase.storage
-          .from("transaction_documents")
+          .from("transactiondocuments")
           .getPublicUrl(fileName).data.publicUrl;
       }
 
