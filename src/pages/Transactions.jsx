@@ -3,10 +3,10 @@ import { createClient } from "@supabase/supabase-js";
 
 // יצירת קליינט של Supabase - החלף עם הפרטים שלך
 const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  import.meta.env.VITE_SUPABASE_URL ||
   "https://grtnnimmwajobegjcwvk.supabase.co";
 const supabaseKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdydG5uaW1td2Fqb2JlZ2pjd3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMzMjQzMTcsImV4cCI6MjA1ODkwMDMxN30.4RaJVVfXuL0X_yBsLzWQ64oIuLSta4UxWUm9DmD6KmI";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
