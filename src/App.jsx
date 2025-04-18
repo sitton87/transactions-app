@@ -1,13 +1,13 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/auth-context"; // שים לב לנתיב - לפי המבנה שלך
-
+import { AuthProvider } from "./context/auth-context";
 import AddTransaction from "./pages/AddTransaction";
 import Transactions from "./pages/Transactions";
 import SettingsPage from "./pages/Settings";
 import UserManagementPage from "./pages/UserManagement";
 import Layout from "./components/Layout";
-import Login from "./pages/Login"; // נניח שיצרת דף התחברות
-import { ProtectedRoute } from "./context/auth-context"; // ייבוא רכיב ההגנה
+import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword"; // ✅ הוספת העמוד
+import { ProtectedRoute } from "./context/auth-context";
 
 function App() {
   return (
@@ -16,8 +16,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/add" />} />
           <Route path="/login" element={<Login />} />
-
-          {/* דפים מוגנים - רק למשתמשים מחוברים */}
+          <Route path="/reset-password" element={<ResetPassword />} />{" "}
+          {/* ✅ כאן זה המקום הנכון */}
+          {/* דפים מוגנים */}
           <Route
             path="/add"
             element={
@@ -42,8 +43,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* דף רק למנהלים עם הרשאות ניהול משתמשים */}
           <Route
             path="/users"
             element={
@@ -59,6 +58,3 @@ function App() {
 }
 
 export default App;
-import ResetPassword from "./pages/ResetPassword";
-
-<Route path="/reset-password" element={<ResetPassword />} />;
