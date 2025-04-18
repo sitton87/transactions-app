@@ -59,3 +59,6 @@ function App() {
 }
 
 export default App;
+import ResetPassword from "./pages/ResetPassword";
+
+<Route path="/reset-password" element={<ResetPassword />} />;
