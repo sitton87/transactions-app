@@ -23,12 +23,10 @@ function Transactions() {
   const [businessFilter, setBusinessFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState(""); // הכנסה או הוצאה
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [subcategoryFilter, setSubcategoryFilter] = useState("");
 
   // סטייט לאפשרויות בסלקטים
   const [businesses, setBusinesses] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [subcategories, setSubcategories] = useState([]);
 
   // טעינת הנתונים מ-Supabase
   useEffect(() => {
@@ -49,20 +47,17 @@ function Transactions() {
             business_type,
             suppliers(name),
             categories(name),
-            subcategories(name),
             payment_methods(name),
             source_types(name),
-            source_codes(code)
+            source_codes(code, description)
           `
           )
-
           .order("date", { ascending: false });
 
         if (error) {
           throw error;
         }
 
-        // הכנת אפשרויות סינון מהנתונים
         // עיבוד הנתונים שהגיעו מהשרת
         if (data && data.length > 0) {
           // המרת מבנה הנתונים למבנה שטוח יותר עבור השימוש בקומפוננטה
@@ -82,12 +77,14 @@ function Transactions() {
             // שליפת הערכים מטבלאות קשורות
             business_type: item.business_type || "",
             business: item.suppliers?.name || "",
-            category: item.categories?.name || "",
-            subcategory: item.subcategories?.name || "",
+            // עבור הכנסות, מציג את סוג המקור בעמודת הקטגוריה
+            category:
+              item.type === "income"
+                ? item.source_types?.name || ""
+                : item.categories?.name || "",
             payment_method: item.payment_methods?.name || "",
-            source_type: item.source_types?.name || "",
-            source_code: item.source_codes?.code || "",
-            description: item.invoice_number || "", // אם אין שדה תיאור נשתמש במספר חשבונית כתיאור
+            description:
+              item.invoice_number || item.source_codes?.description || "",
           }));
 
           setTransactions(formattedData);
@@ -100,21 +97,13 @@ function Transactions() {
           ];
           setBusinesses(uniqueBusinesses.sort());
 
-          // קטגוריות ייחודיות
+          // קטגוריות ייחודיות (כולל מקורות הכנסה)
           const uniqueCategories = [
             ...new Set(
               formattedData.map((item) => item.category).filter(Boolean)
             ),
           ];
           setCategories(uniqueCategories.sort());
-
-          // תת-קטגוריות ייחודיות
-          const uniqueSubcategories = [
-            ...new Set(
-              formattedData.map((item) => item.subcategory).filter(Boolean)
-            ),
-          ];
-          setSubcategories(uniqueSubcategories.sort());
         } else {
           setTransactions([]);
         }
@@ -129,45 +118,18 @@ function Transactions() {
     fetchTransactions();
   }, []);
 
-  // עדכון אפשרויות תת-קטגוריה כאשר משתנה הקטגוריה
-  useEffect(() => {
-    if (categoryFilter && transactions.length > 0) {
-      const filteredSubcategories = [
-        ...new Set(
-          transactions
-            .filter((t) => t.category === categoryFilter)
-            .map((t) => t.subcategory)
-            .filter(Boolean)
-        ),
-      ];
-      setSubcategories(filteredSubcategories.sort());
-      // מאפס את התת-קטגוריה אם היא לא רלוונטית לקטגוריה החדשה שנבחרה
-      if (
-        subcategoryFilter &&
-        !filteredSubcategories.includes(subcategoryFilter)
-      ) {
-        setSubcategoryFilter("");
-      }
-    } else if (!categoryFilter && transactions.length > 0) {
-      // אם אין סינון קטגוריה, מציג את כל תת-הקטגוריות
-      const allSubcategories = [
-        ...new Set(transactions.map((t) => t.subcategory).filter(Boolean)),
-      ];
-      setSubcategories(allSubcategories.sort());
-    }
-  }, [categoryFilter, transactions]);
-
   // סינון העסקאות לפי הפילטרים שנבחרו
   const filteredTransactions = transactions.filter((transaction) => {
-    // סינון לפי תאריך התחלה
-    if (startDate && transaction.date < startDate) {
-      return false;
-    }
-
+    // סינון לפי סוג עסק
     if (
       businessTypeFilter &&
       transaction.business_type !== businessTypeFilter
     ) {
+      return false;
+    }
+
+    // סינון לפי תאריך התחלה
+    if (startDate && transaction.date < startDate) {
       return false;
     }
 
@@ -188,11 +150,6 @@ function Transactions() {
 
     // סינון לפי קטגוריה
     if (categoryFilter && transaction.category !== categoryFilter) {
-      return false;
-    }
-
-    // סינון לפי תת-קטגוריה
-    if (subcategoryFilter && transaction.subcategory !== subcategoryFilter) {
       return false;
     }
 
@@ -230,12 +187,12 @@ function Transactions() {
 
   // פונקציה לאיפוס כל הפילטרים
   const resetFilters = () => {
+    setBusinessTypeFilter("");
     setStartDate("");
     setEndDate("");
     setBusinessFilter("");
     setTypeFilter("");
     setCategoryFilter("");
-    setSubcategoryFilter("");
   };
 
   return (
@@ -273,7 +230,7 @@ function Transactions() {
             }}
           >
             <h3 style={{ marginTop: 0, marginBottom: "1rem" }}>סינון עסקאות</h3>
-            <div style={{ flex: "1 1 200px" }}>
+            <div style={{ flex: "1 1 200px", marginBottom: "1rem" }}>
               <label
                 htmlFor="business-type-filter"
                 style={{ display: "block", marginBottom: "0.5rem" }}
@@ -292,8 +249,8 @@ function Transactions() {
                 }}
               >
                 <option value="">הכל</option>
-                <option value="חוות מתניה">חוות מתניה</option>
-                <option value="בית תמחוי">בית תמחוי</option>
+                <option value="farm">חוות מתניה</option>
+                <option value="soup_kitchen">עזר לזולת</option>
               </select>
             </div>
 
@@ -348,34 +305,6 @@ function Transactions() {
                 />
               </div>
 
-              {/* סינון לפי עסק */}
-              <div style={{ flex: "1 1 200px" }}>
-                <label
-                  htmlFor="business-filter"
-                  style={{ display: "block", marginBottom: "0.5rem" }}
-                >
-                  עסק:
-                </label>
-                <select
-                  id="business-filter"
-                  value={businessFilter}
-                  onChange={(e) => setBusinessFilter(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem",
-                    borderRadius: "4px",
-                    border: "1px solid #ccc",
-                  }}
-                >
-                  <option value="">כל העסקים</option>
-                  {businesses.map((business) => (
-                    <option key={business} value={business}>
-                      {business}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               {/* סינון לפי סוג (הכנסה/הוצאה) */}
               <div style={{ flex: "1 1 200px" }}>
                 <label
@@ -410,13 +339,41 @@ function Transactions() {
                 marginBottom: "1rem",
               }}
             >
-              {/* סינון לפי קטגוריה */}
+              {/* סינון לפי עסק */}
+              <div style={{ flex: "1 1 200px" }}>
+                <label
+                  htmlFor="business-filter"
+                  style={{ display: "block", marginBottom: "0.5rem" }}
+                >
+                  עסק/ספק:
+                </label>
+                <select
+                  id="business-filter"
+                  value={businessFilter}
+                  onChange={(e) => setBusinessFilter(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "0.5rem",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc",
+                  }}
+                >
+                  <option value="">כל העסקים</option>
+                  {businesses.map((business) => (
+                    <option key={business} value={business}>
+                      {business}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* סינון לפי קטגוריה/סוג מקור */}
               <div style={{ flex: "1 1 200px" }}>
                 <label
                   htmlFor="category-filter"
                   style={{ display: "block", marginBottom: "0.5rem" }}
                 >
-                  קטגוריה:
+                  קטגוריה/סוג מקור:
                 </label>
                 <select
                   id="category-filter"
@@ -429,39 +386,10 @@ function Transactions() {
                     border: "1px solid #ccc",
                   }}
                 >
-                  <option value="">כל הקטגוריות</option>
+                  <option value="">הכל</option>
                   {categories.map((category) => (
                     <option key={category} value={category}>
                       {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* סינון לפי תת-קטגוריה */}
-              <div style={{ flex: "1 1 200px" }}>
-                <label
-                  htmlFor="subcategory-filter"
-                  style={{ display: "block", marginBottom: "0.5rem" }}
-                >
-                  תת-קטגוריה:
-                </label>
-                <select
-                  id="subcategory-filter"
-                  value={subcategoryFilter}
-                  onChange={(e) => setSubcategoryFilter(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem",
-                    borderRadius: "4px",
-                    border: "1px solid #ccc",
-                  }}
-                  disabled={subcategories.length === 0}
-                >
-                  <option value="">כל תת-הקטגוריות</option>
-                  {subcategories.map((subcategory) => (
-                    <option key={subcategory} value={subcategory}>
-                      {subcategory}
                     </option>
                   ))}
                 </select>
@@ -590,13 +518,10 @@ function Transactions() {
                     תאריך
                   </th>
                   <th style={{ padding: "0.75rem", textAlign: "right" }}>
-                    עסק
+                    עסק/ספק
                   </th>
                   <th style={{ padding: "0.75rem", textAlign: "right" }}>
-                    קטגוריה
-                  </th>
-                  <th style={{ padding: "0.75rem", textAlign: "right" }}>
-                    תת-קטגוריה
+                    קטגוריה/מקור
                   </th>
                   <th style={{ padding: "0.75rem", textAlign: "right" }}>
                     תיאור
@@ -630,9 +555,6 @@ function Transactions() {
                         {transaction.category}
                       </td>
                       <td style={{ padding: "0.75rem" }}>
-                        {transaction.subcategory}
-                      </td>
-                      <td style={{ padding: "0.75rem" }}>
                         {transaction.description}
                       </td>
                       <td
@@ -659,7 +581,7 @@ function Transactions() {
                 ) : (
                   <tr>
                     <td
-                      colSpan="7"
+                      colSpan="6" // עדכון ל-6 עמודות במקום 7 אחרי הסרת תת-קטגוריה
                       style={{ padding: "2rem", textAlign: "center" }}
                     >
                       לא נמצאו עסקאות התואמות את הפילטרים שנבחרו
