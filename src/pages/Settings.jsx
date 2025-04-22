@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
+import CategoryManager from "./CategoryManager"; // שים לב לנתיב אם הקובץ במקום אחר
 
 // יצירת לקוח Supabase
 // החלף את האינפורמציה בזו שקיבלת מ-Supabase
@@ -91,6 +92,7 @@ function SettingsPage() {
     <div style={{ padding: "2rem", direction: "rtl" }}>
       <h2>הגדרות</h2>
       <p>כאן תוכל לנהל קטגוריות, אמצעי תשלום והעדפות כלליות.</p>
+      <CategoryManager />
 
       {message && (
         <div
