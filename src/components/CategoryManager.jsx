@@ -57,8 +57,8 @@ function CategoryManager() {
     ]);
 
     if (error) {
-      setMessage("שגיאה בהוספה");
-      console.error(error);
+      setMessage("שגיאה בהוספה: " + error.message);
+      console.error("שגיאה מה-Supabase:", error);
     } else {
       setNewCategory("");
       await fetchCategories(userId);
