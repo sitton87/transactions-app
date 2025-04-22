@@ -415,7 +415,7 @@ const AddTransaction = () => {
                 ))}
               </select>
             </div>
-
+            {/*}
             <div className="form-group">
               <Label htmlFor="sourceCode">קוד מקור</Label>
               <select
@@ -432,7 +432,7 @@ const AddTransaction = () => {
                 ))}
               </select>
             </div>
-
+            */}
             <div className="form-group">
               <Label htmlFor="document">הוספת מסמך</Label>
               <div className="document-upload-container">
@@ -524,7 +524,8 @@ const AddTransaction = () => {
               </select>
             </div>
 
-            {/* Uncommented subcategory section 
+            {/* 
+            Uncommented subcategory section 
             <div className="form-group">
               <Label htmlFor="subcategoryCode">קוד תת קטגוריה</Label>
               <select
@@ -567,7 +568,7 @@ const AddTransaction = () => {
                 ))}
               </select>
             </div>
-*/}
+            */}
             <div className="form-group">
               <Label htmlFor="amount" required>
                 סכום
