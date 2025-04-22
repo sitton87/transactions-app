@@ -362,7 +362,6 @@ const AddTransaction = () => {
                 name="sourceType"
                 value={formData.sourceType}
                 onChange={handleChange}
-                required
               >
                 <option value="">בחר סוג מקור...</option>
                 {dropdownData.sourceTypes.map((type) => (
@@ -569,7 +568,6 @@ const AddTransaction = () => {
                 name="invoiceNumber"
                 value={formData.invoiceNumber}
                 onChange={handleChange}
-                required
               />
             </div>
 
