@@ -232,18 +232,18 @@ const AddTransaction = () => {
         type: transactionType,
         date: formData.date,
         amount: parseFloat(formData.amount),
-        invoice_number: formData.invoiceNumber,
+        invoice_number: formData.invoiceNumber || null,
         document_url: documentUrl,
       };
 
       // הוספת שדות בהתאם לסוג העסקה
       if (transactionType === "income") {
-        transactionData.source_type_id = formData.sourceType;
-        transactionData.source_code_id = formData.sourceCode;
+        transactionData.source_type_id = formData.sourceType || null;
+        transactionData.source_code_id = formData.sourceCode || null;
       } else {
-        transactionData.category_id = formData.categoryCode;
-        transactionData.subcategory_id = formData.subcategoryCode;
-        transactionData.supplier_id = formData.supplierCode;
+        transactionData.category_id = formData.categoryCode || null;
+        transactionData.subcategory_id = formData.subcategoryCode || null;
+        transactionData.supplier_id = formData.supplierCode || null;
         transactionData.payment_method_id = formData.paymentMethod;
         transactionData.payment_number_id = formData.paymentNumber;
       }
@@ -353,7 +353,7 @@ const AddTransaction = () => {
                 name="invoiceNumber"
                 value={formData.invoiceNumber}
                 onChange={handleChange}
-                required
+                //required
               />
             </div>
 
@@ -382,7 +382,7 @@ const AddTransaction = () => {
                 name="sourceCode"
                 value={formData.sourceCode}
                 onChange={handleChange}
-                required
+                //required
               >
                 <option value="">בחר קוד מקור...</option>
                 {dropdownData.sourceCodes.map((code) => (
@@ -462,7 +462,7 @@ const AddTransaction = () => {
                 ))}
               </select>
             </div>
-
+            {/*
             <div className="form-group">
               <label htmlFor="subcategoryCode">קוד תת קטגוריה</label>
               <select
@@ -506,7 +506,7 @@ const AddTransaction = () => {
                 ))}
               </select>
             </div>
-
+*/}
             <div className="form-group">
               <label htmlFor="amount">סכום</label>
               <input
