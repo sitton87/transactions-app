@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import CategoryManager from "src/components/CategoryManager.jsx"; // שים לב לנתיב אם הקובץ במקום אחר
+import CategoryManager from "../components/CategoryManager";
 
 // יצירת לקוח Supabase
 // החלף את האינפורמציה בזו שקיבלת מ-Supabase
