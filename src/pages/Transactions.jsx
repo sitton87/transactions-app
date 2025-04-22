@@ -292,7 +292,7 @@ function Transactions() {
                 }}
               >
                 <option value="">הכל</option>
-                <option value="חווה">חווה</option>
+                <option value="חוות מתניה">חוות מתניה</option>
                 <option value="בית תמחוי">בית תמחוי</option>
               </select>
             </div>
