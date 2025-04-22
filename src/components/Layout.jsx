@@ -82,7 +82,7 @@ export default function Layout({ children }) {
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
-          <h1 className="text-lg font-bold">עזר לזולת</h1>
+          <h1 className="text-lg font-bold">הפרויקטים של סנדי</h1>
         </div>
       </header>
 
