@@ -17,6 +17,7 @@ const AddTransaction = () => {
     amount: "",
     invoiceNumber: "",
     document: null,
+    businessType: "",
 
     // שדות הכנסה
     sourceType: "",
@@ -235,6 +236,7 @@ const AddTransaction = () => {
         amount: parseFloat(formData.amount),
         invoice_number: formData.invoiceNumber || null,
         document_url: documentUrl,
+        business_type: formData.businessType,
       };
 
       // הוספת שדות בהתאם לסוג העסקה
@@ -320,6 +322,23 @@ const AddTransaction = () => {
         {/* טופס הכנסה */}
         {transactionType === "income" && (
           <div className="income-form">
+            <div className="form-group">
+              <Label htmlFor="businessType" required>
+                סוג עסק
+              </Label>
+              <select
+                id="businessType"
+                name="businessType"
+                value={formData.businessType}
+                onChange={handleChange}
+                required
+              >
+                <option value="">בחר סוג עסק...</option>
+                <option value="farm">חווה</option>
+                <option value="soup_kitchen">בית תמחוי</option>
+              </select>
+            </div>
+
             <div className="form-group">
               <Label htmlFor="date" required>
                 תאריך (פתיחת יומן)
@@ -436,6 +455,23 @@ const AddTransaction = () => {
         {/* טופס הוצאה */}
         {transactionType === "expense" && (
           <div className="expense-form">
+            <div className="form-group">
+              <Label htmlFor="businessType" required>
+                סוג עסק
+              </Label>
+              <select
+                id="businessType"
+                name="businessType"
+                value={formData.businessType}
+                onChange={handleChange}
+                required
+              >
+                <option value="">בחר סוג עסק...</option>
+                <option value="farm">חווה</option>
+                <option value="soup_kitchen">בית תמחוי</option>
+              </select>
+            </div>
+
             <div className="form-group">
               <Label htmlFor="date" required>
                 תאריך

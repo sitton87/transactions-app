@@ -17,6 +17,7 @@ function Transactions() {
   const [error, setError] = useState(null);
 
   // סטייט לאפשרויות סינון
+  const [businessTypeFilter, setBusinessTypeFilter] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [businessFilter, setBusinessFilter] = useState("");
@@ -45,6 +46,7 @@ function Transactions() {
             amount,
             invoice_number,
             document_url,
+            business_type,
             suppliers(name),
             categories(name),
             subcategories(name),
@@ -53,6 +55,7 @@ function Transactions() {
             source_codes(code)
           `
           )
+
           .order("date", { ascending: false });
 
         if (error) {
@@ -77,6 +80,7 @@ function Transactions() {
             invoice_number: item.invoice_number,
             document_url: item.document_url,
             // שליפת הערכים מטבלאות קשורות
+            business_type: item.business_type || "",
             business: item.suppliers?.name || "",
             category: item.categories?.name || "",
             subcategory: item.subcategories?.name || "",
@@ -157,6 +161,13 @@ function Transactions() {
   const filteredTransactions = transactions.filter((transaction) => {
     // סינון לפי תאריך התחלה
     if (startDate && transaction.date < startDate) {
+      return false;
+    }
+
+    if (
+      businessTypeFilter &&
+      transaction.business_type !== businessTypeFilter
+    ) {
       return false;
     }
 
@@ -262,6 +273,29 @@ function Transactions() {
             }}
           >
             <h3 style={{ marginTop: 0, marginBottom: "1rem" }}>סינון עסקאות</h3>
+            <div style={{ flex: "1 1 200px" }}>
+              <label
+                htmlFor="business-type-filter"
+                style={{ display: "block", marginBottom: "0.5rem" }}
+              >
+                סוג עסק:
+              </label>
+              <select
+                id="business-type-filter"
+                value={businessTypeFilter}
+                onChange={(e) => setBusinessTypeFilter(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "0.5rem",
+                  borderRadius: "4px",
+                  border: "1px solid #ccc",
+                }}
+              >
+                <option value="">הכל</option>
+                <option value="חווה">חווה</option>
+                <option value="בית תמחוי">בית תמחוי</option>
+              </select>
+            </div>
 
             <div
               style={{
