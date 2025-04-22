@@ -144,12 +144,12 @@
   cursor: not-allowed;
 }
 
-/* סגנון עבור שדות חובה */
-.form-group label::after {
+/* סגנון עבור שדות חובה 
+.form-group Label::after {
   content: "*";
   color: red;
   margin-right: 4px;
-}
+}*/
 
 .form-group label[for="document"]::after {
   display: none;
