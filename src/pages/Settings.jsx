@@ -89,8 +89,6 @@ function SettingsPage() {
 
   return (
     <div style={{ padding: "2rem", direction: "rtl" }}>
-      <h2>הגדרות</h2>
-
       {message && (
         <div
           style={{
