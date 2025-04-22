@@ -20,12 +20,10 @@ function Transactions() {
   const [businessTypeFilter, setBusinessTypeFilter] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [businessFilter, setBusinessFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState(""); // הכנסה או הוצאה
   const [categoryFilter, setCategoryFilter] = useState("");
 
   // סטייט לאפשרויות בסלקטים
-  const [businesses, setBusinesses] = useState([]);
   const [categories, setCategories] = useState([]);
 
   // טעינת הנתונים מ-Supabase
@@ -75,7 +73,13 @@ function Transactions() {
             invoice_number: item.invoice_number,
             document_url: item.document_url,
             // שליפת הערכים מטבלאות קשורות
-            business_type: item.business_type || "",
+            // המרת סוג העסק מאנגלית לעברית
+            business_type:
+              item.business_type === "farm"
+                ? "חוות מתניה"
+                : item.business_type === "soup_kitchen"
+                ? "עזר לזולת"
+                : item.business_type || "",
             business: item.suppliers?.name || "",
             // עבור הכנסות, מציג את סוג המקור בעמודת הקטגוריה
             category:
@@ -88,14 +92,6 @@ function Transactions() {
           }));
 
           setTransactions(formattedData);
-
-          // עסקים ייחודיים
-          const uniqueBusinesses = [
-            ...new Set(
-              formattedData.map((item) => item.business).filter(Boolean)
-            ),
-          ];
-          setBusinesses(uniqueBusinesses.sort());
 
           // קטגוריות ייחודיות (כולל מקורות הכנסה)
           const uniqueCategories = [
@@ -135,11 +131,6 @@ function Transactions() {
 
     // סינון לפי תאריך סיום
     if (endDate && transaction.date > endDate) {
-      return false;
-    }
-
-    // סינון לפי עסק
-    if (businessFilter && transaction.business !== businessFilter) {
       return false;
     }
 
@@ -190,7 +181,6 @@ function Transactions() {
     setBusinessTypeFilter("");
     setStartDate("");
     setEndDate("");
-    setBusinessFilter("");
     setTypeFilter("");
     setCategoryFilter("");
   };
@@ -339,34 +329,6 @@ function Transactions() {
                 marginBottom: "1rem",
               }}
             >
-              {/* סינון לפי עסק */}
-              <div style={{ flex: "1 1 200px" }}>
-                <label
-                  htmlFor="business-filter"
-                  style={{ display: "block", marginBottom: "0.5rem" }}
-                >
-                  עסק/ספק:
-                </label>
-                <select
-                  id="business-filter"
-                  value={businessFilter}
-                  onChange={(e) => setBusinessFilter(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem",
-                    borderRadius: "4px",
-                    border: "1px solid #ccc",
-                  }}
-                >
-                  <option value="">כל העסקים</option>
-                  {businesses.map((business) => (
-                    <option key={business} value={business}>
-                      {business}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               {/* סינון לפי קטגוריה/סוג מקור */}
               <div style={{ flex: "1 1 200px" }}>
                 <label
@@ -518,7 +480,7 @@ function Transactions() {
                     תאריך
                   </th>
                   <th style={{ padding: "0.75rem", textAlign: "right" }}>
-                    עסק/ספק
+                    סוג עסק
                   </th>
                   <th style={{ padding: "0.75rem", textAlign: "right" }}>
                     קטגוריה/מקור
@@ -549,7 +511,7 @@ function Transactions() {
                         {formatDate(transaction.date)}
                       </td>
                       <td style={{ padding: "0.75rem" }}>
-                        {transaction.business}
+                        {transaction.business_type}
                       </td>
                       <td style={{ padding: "0.75rem" }}>
                         {transaction.category}
