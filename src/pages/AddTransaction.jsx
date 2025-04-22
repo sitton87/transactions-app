@@ -327,7 +327,7 @@ const AddTransaction = () => {
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
-                required
+                //required
               />
             </div>
 
@@ -382,7 +382,6 @@ const AddTransaction = () => {
                 name="sourceCode"
                 value={formData.sourceCode}
                 onChange={handleChange}
-                //required
               >
                 <option value="">בחר קוד מקור...</option>
                 {dropdownData.sourceCodes.map((code) => (
@@ -441,7 +440,7 @@ const AddTransaction = () => {
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
-                required
+                //required
               />
             </div>
 
