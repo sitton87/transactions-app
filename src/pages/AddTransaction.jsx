@@ -327,7 +327,6 @@ const AddTransaction = () => {
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
-                //required
               />
             </div>
 
@@ -353,7 +352,6 @@ const AddTransaction = () => {
                 name="invoiceNumber"
                 value={formData.invoiceNumber}
                 onChange={handleChange}
-                //required
               />
             </div>
 
@@ -440,7 +438,6 @@ const AddTransaction = () => {
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
-                //required
               />
             </div>
 
