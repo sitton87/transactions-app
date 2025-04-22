@@ -43,6 +43,7 @@ function Transactions() {
             invoice_number,
             document_url,
             business_type,
+            description,
             suppliers(name),
             categories(name),
             payment_methods(name),
@@ -72,7 +73,6 @@ function Transactions() {
             amount: item.amount,
             invoice_number: item.invoice_number,
             document_url: item.document_url,
-            // שליפת הערכים מטבלאות קשורות
             // המרת סוג העסק מאנגלית לעברית
             business_type:
               item.business_type === "farm"
@@ -80,15 +80,18 @@ function Transactions() {
                 : item.business_type === "soup_kitchen"
                 ? "עזר לזולת"
                 : item.business_type || "",
-            business: item.suppliers?.name || "",
             // עבור הכנסות, מציג את סוג המקור בעמודת הקטגוריה
             category:
               item.type === "income"
                 ? item.source_types?.name || ""
                 : item.categories?.name || "",
             payment_method: item.payment_methods?.name || "",
+            // שימוש בשדה description החדש לתיאור העסקה
             description:
-              item.invoice_number || item.source_codes?.description || "",
+              item.description ||
+              item.invoice_number ||
+              item.source_codes?.description ||
+              "",
           }));
 
           setTransactions(formattedData);
@@ -239,8 +242,8 @@ function Transactions() {
                 }}
               >
                 <option value="">הכל</option>
-                <option value="farm">חוות מתניה</option>
-                <option value="soup_kitchen">עזר לזולת</option>
+                <option value="חוות מתניה">חוות מתניה</option>
+                <option value="עזר לזולת">עזר לזולת</option>
               </select>
             </div>
 
@@ -543,7 +546,7 @@ function Transactions() {
                 ) : (
                   <tr>
                     <td
-                      colSpan="6" // עדכון ל-6 עמודות במקום 7 אחרי הסרת תת-קטגוריה
+                      colSpan="6" // 6 עמודות במקום 7 אחרי הסרת תת-קטגוריה
                       style={{ padding: "2rem", textAlign: "center" }}
                     >
                       לא נמצאו עסקאות התואמות את הפילטרים שנבחרו
