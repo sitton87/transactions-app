@@ -159,37 +159,46 @@ const AddTransaction = () => {
       });
     }
   };
-
-  // טיפול בשינוי אמצעי תשלום
   const handlePaymentMethodChange = (e) => {
     const methodId = e.target.value;
-    handleChange(e);
+    handleChange(e); // עדכון סטנדרטי
 
-    // סינון מספרי אמצעי תשלום לפי האמצעי שנבחר
+    const selectedMethod = dropdownData.paymentMethods.find(
+      (method) => method.id === methodId
+    );
+
+    const isCash = selectedMethod?.name === "מזומן"; // שנה לפי השם שיש אצלך ב-DB
+
+    if (isCash) {
+      // אם מזומן - איפוס מספר אמצעי וסינון
+      setFormData((prev) => ({
+        ...prev,
+        paymentMethod: methodId,
+        paymentNumber: "",
+      }));
+      setDropdownData((prev) => ({
+        ...prev,
+        filteredPaymentNumbers: [],
+      }));
+      return;
+    }
+
+    // אחרת - המשך סינון כרגיל
     const filteredPaymentNumbers = dropdownData.paymentNumbers.filter(
       (item) => item.payment_method_id === methodId
     );
 
-    setDropdownData({
-      ...dropdownData,
+    setDropdownData((prev) => ({
+      ...prev,
       filteredPaymentNumbers,
-    });
+    }));
 
-    // אם יש רק אפשרות אחת, נבחר אותה אוטומטית
-    if (filteredPaymentNumbers.length === 1) {
-      setFormData({
-        ...formData,
-        paymentMethod: methodId,
-        paymentNumber: filteredPaymentNumbers[0].id,
-      });
-    } else {
-      // אחרת, מאפסים את הבחירה הקודמת
-      setFormData({
-        ...formData,
-        paymentMethod: methodId,
-        paymentNumber: "",
-      });
-    }
+    setFormData((prev) => ({
+      ...prev,
+      paymentMethod: methodId,
+      paymentNumber:
+        filteredPaymentNumbers.length === 1 ? filteredPaymentNumbers[0].id : "",
+    }));
   };
 
   // פונקציות לטיפול במצלמה
