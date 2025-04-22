@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import "../styles/TransactionForms.css";
 import DocumentCamera from "../components/DocumentCamera";
+import Label from "../components/Label";
 
 const AddTransaction = () => {
   const navigate = useNavigate();
@@ -320,7 +321,9 @@ const AddTransaction = () => {
         {transactionType === "income" && (
           <div className="income-form">
             <div className="form-group">
-              <label htmlFor="date">תאריך (פתיחת יומן)</label>
+              <Label htmlFor="date" required>
+                תאריך (פתיחת יומן)
+              </Label>
               <input
                 type="date"
                 id="date"
@@ -331,7 +334,9 @@ const AddTransaction = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="amount">סכום</label>
+              <Label htmlFor="amount" required>
+                סכום
+              </Label>
               <input
                 type="number"
                 id="amount"
@@ -345,7 +350,7 @@ const AddTransaction = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="invoiceNumber">מספר חשבונית</label>
+              <Label htmlFor="invoiceNumber">מספר חשבונית</Label>
               <input
                 type="text"
                 id="invoiceNumber"
@@ -356,7 +361,9 @@ const AddTransaction = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="sourceType">סוג מקור</label>
+              <Label htmlFor="sourceType" required>
+                סוג מקור
+              </Label>
               <select
                 id="sourceType"
                 name="sourceType"
@@ -373,7 +380,7 @@ const AddTransaction = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="sourceCode">קוד מקור</label>
+              <Label htmlFor="sourceCode">קוד מקור</Label>
               <select
                 id="sourceCode"
                 name="sourceCode"
@@ -390,7 +397,7 @@ const AddTransaction = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="document">הוספת מסמך</label>
+              <Label htmlFor="document">הוספת מסמך</Label>
               <div className="document-upload-container">
                 <input
                   type="file"
@@ -430,7 +437,9 @@ const AddTransaction = () => {
         {transactionType === "expense" && (
           <div className="expense-form">
             <div className="form-group">
-              <label htmlFor="date">תאריך</label>
+              <Label htmlFor="date" required>
+                תאריך
+              </Label>
               <input
                 type="date"
                 id="date"
@@ -441,7 +450,9 @@ const AddTransaction = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="categoryCode">קוד קטגוריה</label>
+              <Label htmlFor="categoryCode" required>
+                קוד קטגוריה
+              </Label>
               <select
                 id="categoryCode"
                 name="categoryCode"
@@ -503,7 +514,9 @@ const AddTransaction = () => {
             </div>
 */}
             <div className="form-group">
-              <label htmlFor="amount">סכום</label>
+              <Label htmlFor="amount" required>
+                סכום
+              </Label>
               <input
                 type="number"
                 id="amount"
@@ -517,7 +530,9 @@ const AddTransaction = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="paymentMethod">אמצעי תשלום</label>
+              <Label htmlFor="paymentMethod" required>
+                אמצעי תשלום
+              </Label>
               <select
                 id="paymentMethod"
                 name="paymentMethod"
@@ -535,7 +550,9 @@ const AddTransaction = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="paymentNumber">מספר אמצעי</label>
+              <Label htmlFor="paymentNumber" required>
+                מספר אמצעי
+              </Label>
               <select
                 id="paymentNumber"
                 name="paymentNumber"
@@ -561,7 +578,7 @@ const AddTransaction = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="invoiceNumber">מס' חשבונית</label>
+              <Label htmlFor="invoiceNumber">מס' חשבונית</Label>
               <input
                 type="text"
                 id="invoiceNumber"
@@ -572,7 +589,7 @@ const AddTransaction = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="document">הוספת מסמך</label>
+              <Label htmlFor="document">הוספת מסמך</Label>
               <div className="document-upload-container">
                 <input
                   type="file"
