@@ -334,8 +334,8 @@ const AddTransaction = () => {
                 required
               >
                 <option value="">בחר סוג עסק...</option>
-                <option value="farm">חווה</option>
-                <option value="soup_kitchen">בית תמחוי</option>
+                <option value="farm">חוות מתניה</option>
+                <option value="soup_kitchen"> עזר לזולת</option>
               </select>
             </div>
 
@@ -467,8 +467,8 @@ const AddTransaction = () => {
                 required
               >
                 <option value="">בחר סוג עסק...</option>
-                <option value="farm">חווה</option>
-                <option value="soup_kitchen">בית תמחוי</option>
+                <option value="farm">חוות מתניה</option>
+                <option value="soup_kitchen">עזר לזולת</option>
               </select>
             </div>
 
