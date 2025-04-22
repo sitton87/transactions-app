@@ -1,7 +1,6 @@
 /* src/styles/TransactionForms.css */
 .transaction-form-container {
   max-width: 800px;
-  text-align: center;
   margin: 0 auto;
   padding: 20px;
   direction: rtl;

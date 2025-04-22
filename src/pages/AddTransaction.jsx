@@ -8,22 +8,22 @@ import Label from "../components/Label";
 
 const AddTransaction = () => {
   const navigate = useNavigate();
-  const [transactionType, setTransactionType] = useState("income"); // 'income' או 'expense'
+  const [transactionType, setTransactionType] = useState("income"); // 'income' or 'expense'
   const [isLoading, setIsLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [formData, setFormData] = useState({
-    // שדות משותפים
+    // Common fields
     date: "",
     amount: "",
     invoiceNumber: "",
     document: null,
     businessType: "",
 
-    // שדות הכנסה
+    // Income fields
     sourceType: "",
     sourceCode: "",
 
-    // שדות הוצאה
+    // Expense fields
     categoryCode: "",
     subcategoryCode: "",
     supplierCode: "",
@@ -31,7 +31,7 @@ const AddTransaction = () => {
     paymentNumber: "",
   });
 
-  // רשימות נתונים לשדות ה-dropdown
+  // Dropdown data for form fields
   const [dropdownData, setDropdownData] = useState({
     sourceTypes: [],
     sourceCodes: [],
@@ -44,52 +44,52 @@ const AddTransaction = () => {
     filteredPaymentNumbers: [],
   });
 
-  // טעינת הנתונים מ-Supabase בטעינת הדף
+  // Load data from Supabase on page load
   useEffect(() => {
     const fetchDropdownData = async () => {
       setIsLoading(true);
       try {
-        // טעינת סוגי מקור
+        // Load source types
         const { data: sourceTypes, error: sourceTypesError } = await supabase
           .from("source_types")
           .select("*");
 
         if (sourceTypesError) throw sourceTypesError;
 
-        // טעינת קודי מקור
+        // Load source codes
         const { data: sourceCodes, error: sourceCodesError } = await supabase
           .from("source_codes")
           .select("*");
 
         if (sourceCodesError) throw sourceCodesError;
 
-        // טעינת קטגוריות
+        // Load categories
         const { data: categories, error: categoriesError } = await supabase
           .from("categories")
           .select("*");
 
         if (categoriesError) throw categoriesError;
 
-        // טעינת תת-קטגוריות
+        // Load subcategories
         const { data: subcategories, error: subcategoriesError } =
           await supabase.from("subcategories").select("*");
 
         if (subcategoriesError) throw subcategoriesError;
 
-        // טעינת ספקים
+        // Load suppliers
         const { data: suppliers, error: suppliersError } = await supabase
           .from("suppliers")
           .select("*");
 
         if (suppliersError) throw suppliersError;
 
-        // טעינת אמצעי תשלום
+        // Load payment methods
         const { data: paymentMethods, error: paymentMethodsError } =
           await supabase.from("payment_methods").select("*");
 
         if (paymentMethodsError) throw paymentMethodsError;
 
-        // טעינת מספרי אמצעי תשלום
+        // Load payment numbers
         const { data: paymentNumbers, error: paymentNumbersError } =
           await supabase.from("payment_numbers").select("*");
 
@@ -117,7 +117,7 @@ const AddTransaction = () => {
     fetchDropdownData();
   }, []);
 
-  // עדכון שדות הטופס בעת שינוי
+  // Handle form field changes
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
 
@@ -128,12 +128,12 @@ const AddTransaction = () => {
     }
   };
 
-  // טיפול בשינוי קטגוריה
+  // Handle category change with subcategory filtering
   const handleCategoryChange = (e) => {
     const categoryId = e.target.value;
     handleChange(e);
 
-    // סינון תת-קטגוריות לפי הקטגוריה שנבחרה
+    // Filter subcategories by selected category
     const filteredSubcategories = dropdownData.subcategories.filter(
       (item) => item.category_id === categoryId
     );
@@ -143,7 +143,7 @@ const AddTransaction = () => {
       filteredSubcategories,
     });
 
-    // אם יש רק אפשרות אחת, נבחר אותה אוטומטית
+    // If only one option, select it automatically
     if (filteredSubcategories.length === 1) {
       setFormData({
         ...formData,
@@ -151,7 +151,7 @@ const AddTransaction = () => {
         subcategoryCode: filteredSubcategories[0].id,
       });
     } else {
-      // אחרת, מאפסים את הבחירה הקודמת
+      // Otherwise, reset previous selection
       setFormData({
         ...formData,
         categoryCode: categoryId,
@@ -159,18 +159,20 @@ const AddTransaction = () => {
       });
     }
   };
+
+  // Handle payment method change with payment number filtering
   const handlePaymentMethodChange = (e) => {
     const methodId = e.target.value;
-    handleChange(e); // עדכון סטנדרטי
+    handleChange(e); // Standard update
 
     const selectedMethod = dropdownData.paymentMethods.find(
       (method) => method.id === methodId
     );
 
-    const isCash = selectedMethod?.name === "מזומן"; // שנה לפי השם שיש אצלך ב-DB
+    const isCash = selectedMethod?.name === "מזומן"; // Change based on your DB name
 
     if (isCash) {
-      // אם מזומן - איפוס מספר אמצעי וסינון
+      // If cash - reset payment number and filter
       setFormData((prev) => ({
         ...prev,
         paymentMethod: methodId,
@@ -183,7 +185,7 @@ const AddTransaction = () => {
       return;
     }
 
-    // אחרת - המשך סינון כרגיל
+    // Otherwise - filter as usual
     const filteredPaymentNumbers = dropdownData.paymentNumbers.filter(
       (item) => item.payment_method_id === methodId
     );
@@ -201,7 +203,7 @@ const AddTransaction = () => {
     }));
   };
 
-  // פונקציות לטיפול במצלמה
+  // Camera functions
   const handleOpenCamera = () => {
     setShowCamera(true);
   };
@@ -215,13 +217,13 @@ const AddTransaction = () => {
     setShowCamera(false);
   };
 
-  // שליחת הטופס
+  // Form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // העלאת המסמך, אם יש
+      // Upload document if exists
       let documentUrl = null;
       if (formData.document) {
         const fileExt = formData.document.name.split(".").pop();
@@ -233,22 +235,25 @@ const AddTransaction = () => {
 
         if (error) throw error;
 
-        documentUrl = supabase.storage
+        // Fix: Proper way to get public URL
+        const { data: urlData } = supabase.storage
           .from("transactiondocuments")
-          .getPublicUrl(fileName).data.publicUrl;
+          .getPublicUrl(fileName);
+
+        documentUrl = urlData.publicUrl;
       }
 
-      // הכנת הנתונים לשמירה בהתאם לסוג העסקה
+      // Prepare data for saving based on transaction type
       const transactionData = {
         type: transactionType,
         date: formData.date,
-        amount: parseFloat(formData.amount),
+        amount: parseFloat(formData.amount) || 0, // Fix: Add fallback for empty amount
         invoice_number: formData.invoiceNumber || null,
         document_url: documentUrl,
         business_type: formData.businessType,
       };
 
-      // הוספת שדות בהתאם לסוג העסקה
+      // Add fields based on transaction type
       if (transactionType === "income") {
         transactionData.source_type_id = formData.sourceType || null;
         transactionData.source_code_id = formData.sourceCode || null;
@@ -256,23 +261,24 @@ const AddTransaction = () => {
         transactionData.category_id = formData.categoryCode || null;
         transactionData.subcategory_id = formData.subcategoryCode || null;
         transactionData.supplier_id = formData.supplierCode || null;
-        transactionData.payment_method_id = formData.paymentMethod;
-        transactionData.payment_number_id = formData.paymentNumber;
+        transactionData.payment_method_id = formData.paymentMethod || null; // Fix: Add null fallback
+        transactionData.payment_number_id = formData.paymentNumber || null; // Fix: Add null fallback
       }
 
-      // שמירת העסקה
+      // Save transaction
       const { error } = await supabase
         .from("transactions")
         .insert([transactionData]);
 
       if (error) throw error;
 
-      // איפוס הטופס
+      // Reset form
       setFormData({
         date: "",
         amount: "",
         invoiceNumber: "",
         document: null,
+        businessType: "", // Fix: Also reset business type
         sourceType: "",
         sourceCode: "",
         categoryCode: "",
@@ -282,17 +288,17 @@ const AddTransaction = () => {
         paymentNumber: "",
       });
 
-      // איפוס התת-קטגוריות ומספרי אמצעי תשלום המסוננים
+      // Reset filtered subcategories and payment numbers
       setDropdownData({
         ...dropdownData,
         filteredSubcategories: [],
         filteredPaymentNumbers: [],
       });
 
-      // להציג הודעת הצלחה
+      // Show success message
       alert("העסקה נשמרה בהצלחה!");
 
-      // במקום לנווט לדף אחר, אנחנו נשארים באותו דף עם הטופס מאופס
+      // We stay on the same page with reset form
       // navigate("/transactions");
     } catch (error) {
       console.error("Error saving transaction:", error);
@@ -302,6 +308,7 @@ const AddTransaction = () => {
     }
   };
 
+  // Show loading indicator when data is being fetched
   if (isLoading && dropdownData.sourceTypes.length === 0) {
     return <div className="loading">טוען נתונים...</div>;
   }
@@ -328,7 +335,7 @@ const AddTransaction = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="transaction-form">
-        {/* טופס הכנסה */}
+        {/* Income form */}
         {transactionType === "income" && (
           <div className="income-form">
             <div className="form-group">
@@ -344,7 +351,7 @@ const AddTransaction = () => {
               >
                 <option value="">בחר סוג עסק...</option>
                 <option value="farm">חוות מתניה</option>
-                <option value="soup_kitchen"> עזר לזולת</option>
+                <option value="soup_kitchen">עזר לזולת</option>
               </select>
             </div>
 
@@ -358,6 +365,7 @@ const AddTransaction = () => {
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
+                required
               />
             </div>
 
@@ -397,6 +405,7 @@ const AddTransaction = () => {
                 name="sourceType"
                 value={formData.sourceType}
                 onChange={handleChange}
+                required
               >
                 <option value="">בחר סוג מקור...</option>
                 {dropdownData.sourceTypes.map((type) => (
@@ -461,7 +470,7 @@ const AddTransaction = () => {
           </div>
         )}
 
-        {/* טופס הוצאה */}
+        {/* Expense form */}
         {transactionType === "expense" && (
           <div className="expense-form">
             <div className="form-group">
@@ -491,6 +500,7 @@ const AddTransaction = () => {
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
+                required
               />
             </div>
 
@@ -513,15 +523,15 @@ const AddTransaction = () => {
                 ))}
               </select>
             </div>
-            {/*
+
+            {/* Uncommented subcategory section */}
             <div className="form-group">
-              <label htmlFor="subcategoryCode">קוד תת קטגוריה</label>
+              <Label htmlFor="subcategoryCode">קוד תת קטגוריה</Label>
               <select
                 id="subcategoryCode"
                 name="subcategoryCode"
                 value={formData.subcategoryCode}
                 onChange={handleChange}
-                required
                 disabled={!formData.categoryCode}
               >
                 <option value="">בחר תת-קטגוריה...</option>
@@ -540,14 +550,14 @@ const AddTransaction = () => {
               </select>
             </div>
 
+            {/* Uncommented supplier section */}
             <div className="form-group">
-              <label htmlFor="supplierCode">קוד ספק</label>
+              <Label htmlFor="supplierCode">קוד ספק</Label>
               <select
                 id="supplierCode"
                 name="supplierCode"
                 value={formData.supplierCode}
                 onChange={handleChange}
-                required
               >
                 <option value="">בחר ספק...</option>
                 {dropdownData.suppliers.map((supplier) => (
@@ -557,7 +567,7 @@ const AddTransaction = () => {
                 ))}
               </select>
             </div>
-*/}
+
             <div className="form-group">
               <Label htmlFor="amount" required>
                 סכום
@@ -595,15 +605,12 @@ const AddTransaction = () => {
             </div>
 
             <div className="form-group">
-              <Label htmlFor="paymentNumber" required>
-                מספר אמצעי
-              </Label>
+              <Label htmlFor="paymentNumber">מספר אמצעי</Label>
               <select
                 id="paymentNumber"
                 name="paymentNumber"
                 value={formData.paymentNumber}
                 onChange={handleChange}
-                required
                 disabled={!formData.paymentMethod}
               >
                 <option value="">בחר מספר אמצעי...</option>
