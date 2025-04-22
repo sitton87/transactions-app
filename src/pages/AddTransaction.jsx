@@ -176,7 +176,7 @@ const AddTransaction = () => {
       setFormData((prev) => ({
         ...prev,
         paymentMethod: methodId,
-        paymentNumber: "",
+        paymentNumber: "", // Empty payment number for cash
       }));
       setDropdownData((prev) => ({
         ...prev,
@@ -262,7 +262,19 @@ const AddTransaction = () => {
         transactionData.subcategory_id = formData.subcategoryCode || null;
         transactionData.supplier_id = formData.supplierCode || null;
         transactionData.payment_method_id = formData.paymentMethod || null; // Fix: Add null fallback
-        transactionData.payment_number_id = formData.paymentNumber || null; // Fix: Add null fallback
+
+        // Handle payment number for cash versus other payment methods
+        const selectedMethod = dropdownData.paymentMethods.find(
+          (method) => method.id === formData.paymentMethod
+        );
+        const isCash = selectedMethod?.name === "מזומן";
+
+        // Only include payment_number_id for non-cash methods
+        if (!isCash) {
+          transactionData.payment_number_id = formData.paymentNumber || null;
+        } else {
+          transactionData.payment_number_id = null;
+        }
       }
 
       // Save transaction
@@ -415,7 +427,7 @@ const AddTransaction = () => {
                 ))}
               </select>
             </div>
-            {/*}
+            {/*
             <div className="form-group">
               <Label htmlFor="sourceCode">קוד מקור</Label>
               <select
@@ -524,8 +536,7 @@ const AddTransaction = () => {
               </select>
             </div>
 
-            {/* 
-            Uncommented subcategory section 
+            {/* Uncommented subcategory section
             <div className="form-group">
               <Label htmlFor="subcategoryCode">קוד תת קטגוריה</Label>
               <select
@@ -551,6 +562,7 @@ const AddTransaction = () => {
               </select>
             </div>
 
+            {/*
             Uncommented supplier section 
             <div className="form-group">
               <Label htmlFor="supplierCode">קוד ספק</Label>
@@ -605,30 +617,39 @@ const AddTransaction = () => {
               </select>
             </div>
 
-            <div className="form-group">
-              <Label htmlFor="paymentNumber">מספר אמצעי</Label>
-              <select
-                id="paymentNumber"
-                name="paymentNumber"
-                value={formData.paymentNumber}
-                onChange={handleChange}
-                disabled={!formData.paymentMethod}
-              >
-                <option value="">בחר מספר אמצעי...</option>
-                {(dropdownData.filteredPaymentNumbers.length > 0
-                  ? dropdownData.filteredPaymentNumbers
-                  : dropdownData.paymentNumbers.filter(
-                      (item) =>
-                        !formData.paymentMethod ||
-                        item.payment_method_id === formData.paymentMethod
-                    )
-                ).map((number) => (
-                  <option key={number.id} value={number.id}>
-                    {number.description}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Hide payment number field completely for cash payments */}
+            {!dropdownData.paymentMethods.find(
+              (method) =>
+                method.id === formData.paymentMethod && method.name === "מזומן"
+            ) && (
+              <div className="form-group">
+                <Label htmlFor="paymentNumber" required>
+                  מספר אמצעי
+                </Label>
+                <select
+                  id="paymentNumber"
+                  name="paymentNumber"
+                  value={formData.paymentNumber}
+                  onChange={handleChange}
+                  disabled={!formData.paymentMethod}
+                  required
+                >
+                  <option value="">בחר מספר אמצעי...</option>
+                  {(dropdownData.filteredPaymentNumbers.length > 0
+                    ? dropdownData.filteredPaymentNumbers
+                    : dropdownData.paymentNumbers.filter(
+                        (item) =>
+                          !formData.paymentMethod ||
+                          item.payment_method_id === formData.paymentMethod
+                      )
+                  ).map((number) => (
+                    <option key={number.id} value={number.id}>
+                      {number.description}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="form-group">
               <Label htmlFor="invoiceNumber">מס' חשבונית</Label>
