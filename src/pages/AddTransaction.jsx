@@ -524,7 +524,7 @@ const AddTransaction = () => {
               </select>
             </div>
 
-            {/* Uncommented subcategory section */}
+            {/* Uncommented subcategory section 
             <div className="form-group">
               <Label htmlFor="subcategoryCode">קוד תת קטגוריה</Label>
               <select
@@ -550,7 +550,7 @@ const AddTransaction = () => {
               </select>
             </div>
 
-            {/* Uncommented supplier section */}
+            Uncommented supplier section 
             <div className="form-group">
               <Label htmlFor="supplierCode">קוד ספק</Label>
               <select
@@ -567,7 +567,7 @@ const AddTransaction = () => {
                 ))}
               </select>
             </div>
-
+*/}
             <div className="form-group">
               <Label htmlFor="amount" required>
                 סכום
