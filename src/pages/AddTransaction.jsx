@@ -14,6 +14,7 @@ const AddTransaction = () => {
   const [formData, setFormData] = useState({
     // Common fields
     date: "",
+    description: "", // הוספת שדה תיאור
     amount: "",
     invoiceNumber: "",
     document: null,
@@ -123,6 +124,9 @@ const AddTransaction = () => {
 
     if (type === "file") {
       setFormData({ ...formData, [name]: files[0] });
+    } else if (name === "description") {
+      // הגבלת אורך התיאור ל-15 תווים
+      setFormData({ ...formData, [name]: value.slice(0, 15) });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -247,6 +251,7 @@ const AddTransaction = () => {
       const transactionData = {
         type: transactionType,
         date: formData.date,
+        description: formData.description || null, // הוספת שדה תיאור למסד הנתונים
         amount: parseFloat(formData.amount) || 0, // Fix: Add fallback for empty amount
         invoice_number: formData.invoiceNumber || null,
         document_url: documentUrl,
@@ -287,6 +292,7 @@ const AddTransaction = () => {
       // Reset form
       setFormData({
         date: "",
+        description: "", // איפוס שדה תיאור
         amount: "",
         invoiceNumber: "",
         document: null,
@@ -379,6 +385,21 @@ const AddTransaction = () => {
                 onChange={handleChange}
                 required
               />
+            </div>
+
+            {/* הוספת שדה תיאור אחרי התאריך */}
+            <div className="form-group">
+              <Label htmlFor="description">תיאור</Label>
+              <input
+                type="text"
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                maxLength="15"
+                placeholder="תיאור קצר (עד 15 תווים)"
+              />
+              <small>{formData.description.length}/15 תווים</small>
             </div>
 
             <div className="form-group">
@@ -514,6 +535,21 @@ const AddTransaction = () => {
                 onChange={handleChange}
                 required
               />
+            </div>
+
+            {/* הוספת שדה תיאור אחרי התאריך */}
+            <div className="form-group">
+              <Label htmlFor="description">תיאור</Label>
+              <input
+                type="text"
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                maxLength="15"
+                placeholder="תיאור קצר (עד 15 תווים)"
+              />
+              <small>{formData.description.length}/15 תווים</small>
             </div>
 
             <div className="form-group">
