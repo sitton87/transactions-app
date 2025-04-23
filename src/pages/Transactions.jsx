@@ -26,42 +26,43 @@ function Transactions() {
   // סטייט לאפשרויות בסלקטים
   const [categories, setCategories] = useState([]);
 
-  // שלב 2: פונקציה לשליחת ZIP למייל
-  const handleSendFilteredDataByEmail = async () => {
-    try {
-      const { data: userData, error: userError } =
-        await supabase.auth.getUser();
+  // פונקציה לייצוא הנתונים לקובץ CSV
+  const handleExportCSV = () => {
+    const headers = [
+      "תאריך",
+      "סוג עסק",
+      "קטגוריה",
+      "תיאור",
+      "סוג",
+      "סכום",
+      "קובץ",
+    ];
 
-      if (userError) throw userError;
+    const rows = filteredTransactions.map((tx) => [
+      tx.date,
+      tx.business_type,
+      tx.category,
+      tx.description,
+      tx.type,
+      tx.amount,
+      tx.document_url || "",
+    ]);
 
-      const userEmail = userData.user.email;
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+      ),
+    ].join("\n");
 
-      if (!userEmail) {
-        alert("לא נמצא מייל של המשתמש.");
-        return;
-      }
-
-      const response = await fetch("/api/send-zip", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          transactions: filteredTransactions,
-          userEmail: userEmail,
-        }),
-      });
-
-      if (response.ok) {
-        alert("הקובץ נשלח למייל שלך בהצלחה 📬");
-      } else {
-        const errorText = await response.text();
-        alert("שגיאה בשליחה למייל: " + errorText);
-      }
-    } catch (error) {
-      console.error("שגיאה כללית בשליחה למייל:", error);
-      alert("שגיאה בלתי צפויה. ראה קונסול.");
-    }
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Sendi_Transactions.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // טעינת הנתונים מ-Supabase
@@ -224,6 +225,23 @@ function Transactions() {
     <div style={{ padding: "2rem", direction: "rtl" }}>
       <h2>רשימת עסקאות</h2>
       <p>כאן תוכל לראות את כל העסקאות שנרשמו במערכת ולסנן אותן לפי צרכיך.</p>
+
+      {/* כפתור הורדת CSV */}
+      <button
+        onClick={handleExportCSV}
+        style={{
+          marginBottom: "1rem",
+          padding: "0.5rem 1rem",
+          backgroundColor: "#2196f3",
+          color: "white",
+          border: "none",
+          borderRadius: "4px",
+          cursor: "pointer",
+          fontWeight: "bold",
+        }}
+      >
+        📄 ייצא כ-CSV
+      </button>
 
       {/* תצוגת טעינה או שגיאה */}
       {loading ? (
@@ -418,22 +436,6 @@ function Transactions() {
             </div>
           </div>
 
-          <button
-            onClick={handleSendFilteredDataByEmail}
-            style={{
-              width: "100%",
-              padding: "0.5rem 1rem",
-              backgroundColor: "#4caf50",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            שלח למייל כקובץ ZIP
-          </button>
-
           {/* אזור הסיכום */}
           <div
             style={{
@@ -545,6 +547,9 @@ function Transactions() {
                   <th style={{ padding: "0.75rem", textAlign: "left" }}>
                     סכום
                   </th>
+                  <th style={{ padding: "0.75rem", textAlign: "center" }}>
+                    קובץ
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -589,12 +594,30 @@ function Transactions() {
                         {transaction.type === "הכנסה" ? "+" : "-"}₪
                         {Number(transaction.amount).toLocaleString()}
                       </td>
+                      <td style={{ padding: "0.75rem", textAlign: "center" }}>
+                        {transaction.document_url ? (
+                          <a
+                            href={transaction.document_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              color: "#3f51b5",
+                              textDecoration: "none",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            🔗 צפה
+                          </a>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td
-                      colSpan="6" // 6 עמודות במקום 7 אחרי הסרת תת-קטגוריה
+                      colSpan="7"
                       style={{ padding: "2rem", textAlign: "center" }}
                     >
                       לא נמצאו עסקאות התואמות את הפילטרים שנבחרו
