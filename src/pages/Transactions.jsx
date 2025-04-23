@@ -41,19 +41,16 @@ function Transactions() {
         return;
       }
 
-      const response = await fetch(
-        "https://ezerlezoletsandi-israel-sitons-projects.vercel.app/api/send-zip",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            transactions: filteredTransactions,
-            userEmail: userEmail,
-          }),
-        }
-      );
+      const response = await fetch("/api/send-zip", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          transactions: filteredTransactions,
+          userEmail: userEmail,
+        }),
+      });
 
       if (response.ok) {
         alert("הקובץ נשלח למייל שלך בהצלחה 📬");
