@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// יצירת קליינט של Supabase - החלף עם הפרטים שלך
+// יצירת קליינט של Supabase
 const supabaseUrl =
   import.meta.env.VITE_SUPABASE_URL ||
   "https://grtnnimmwajobegjcwvk.supabase.co";
@@ -41,16 +41,19 @@ function Transactions() {
         return;
       }
 
-      const response = await fetch("https://YOUR_BACKEND_URL/send-zip", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          transactions: filteredTransactions,
-          userEmail: userEmail,
-        }),
-      });
+      const response = await fetch(
+        "https://ezerlezoletsandi-israel-sitons-projects.vercel.app/api/send-zip",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            transactions: filteredTransactions,
+            userEmail: userEmail,
+          }),
+        }
+      );
 
       if (response.ok) {
         alert("הקובץ נשלח למייל שלך בהצלחה 📬");
