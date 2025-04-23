@@ -26,6 +26,44 @@ function Transactions() {
   // סטייט לאפשרויות בסלקטים
   const [categories, setCategories] = useState([]);
 
+  // שלב 2: פונקציה לשליחת ZIP למייל
+  const handleSendFilteredDataByEmail = async () => {
+    try {
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
+
+      if (userError) throw userError;
+
+      const userEmail = userData.user.email;
+
+      if (!userEmail) {
+        alert("לא נמצא מייל של המשתמש.");
+        return;
+      }
+
+      const response = await fetch("https://YOUR_BACKEND_URL/send-zip", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          transactions: filteredTransactions,
+          userEmail: userEmail,
+        }),
+      });
+
+      if (response.ok) {
+        alert("הקובץ נשלח למייל שלך בהצלחה 📬");
+      } else {
+        const errorText = await response.text();
+        alert("שגיאה בשליחה למייל: " + errorText);
+      }
+    } catch (error) {
+      console.error("שגיאה כללית בשליחה למייל:", error);
+      alert("שגיאה בלתי צפויה. ראה קונסול.");
+    }
+  };
+
   // טעינת הנתונים מ-Supabase
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -59,11 +97,9 @@ function Transactions() {
 
         // עיבוד הנתונים שהגיעו מהשרת
         if (data && data.length > 0) {
-          // המרת מבנה הנתונים למבנה שטוח יותר עבור השימוש בקומפוננטה
           const formattedData = data.map((item) => ({
             id: item.id,
             date: item.date,
-            // המרת סוג העסקה מאנגלית לעברית
             type:
               item.type === "income"
                 ? "הכנסה"
@@ -73,20 +109,17 @@ function Transactions() {
             amount: item.amount,
             invoice_number: item.invoice_number,
             document_url: item.document_url,
-            // המרת סוג העסק מאנגלית לעברית
             business_type:
               item.business_type === "farm"
                 ? "חוות מתניה"
                 : item.business_type === "soup_kitchen"
                 ? "עזר לזולת"
                 : item.business_type || "",
-            // עבור הכנסות, מציג את סוג המקור בעמודת הקטגוריה
             category:
               item.type === "income"
                 ? item.source_types?.name || ""
                 : item.categories?.name || "",
             payment_method: item.payment_methods?.name || "",
-            // שימוש בשדה description החדש לתיאור העסקה
             description:
               item.description ||
               item.invoice_number ||
@@ -96,7 +129,6 @@ function Transactions() {
 
           setTransactions(formattedData);
 
-          // קטגוריות ייחודיות (כולל מקורות הכנסה)
           const uniqueCategories = [
             ...new Set(
               formattedData.map((item) => item.category).filter(Boolean)
@@ -385,6 +417,22 @@ function Transactions() {
               </div>
             </div>
           </div>
+
+          <button
+            onClick={handleSendFilteredDataByEmail}
+            style={{
+              width: "100%",
+              padding: "0.5rem 1rem",
+              backgroundColor: "#4caf50",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontWeight: "bold",
+            }}
+          >
+            שלח למייל כקובץ ZIP
+          </button>
 
           {/* אזור הסיכום */}
           <div
