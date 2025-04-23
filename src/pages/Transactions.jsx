@@ -48,13 +48,18 @@ function Transactions() {
       tx.document_url || "",
     ]);
 
-    const csvContent = [
-      headers.join(","),
-      ...rows.map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
-      ),
-    ].join("\n");
+    // הוספת BOM (Byte Order Mark) כדי שאקסל יזהה את הקובץ כ-UTF-8
+    const BOM = "\uFEFF";
+    const csvContent =
+      BOM +
+      [
+        headers.join(","),
+        ...rows.map((row) =>
+          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+        ),
+      ].join("\n");
 
+    // שימוש בקידוד UTF-8 עם BOM לתמיכה בעברית
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
